@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/transaction_provider.dart';
 import '../services/auth_service.dart';
 
@@ -11,80 +12,120 @@ class ProfileScreen extends StatelessWidget {
     final provider = Provider.of<TransactionProvider>(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold))),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
+      body: Column(
         children: [
-          Center(
-            child: Column(
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(24),
               children: [
-                const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Center(
+                  child: Column(
+                    children: [
+                      const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(provider.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          IconButton(
+                            icon: const Icon(Icons.edit, size: 20),
+                            onPressed: () => _showEditNameDialog(context, provider),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text('Financial Goals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.savings),
+                    title: const Text('Monthly Savings Goal'),
+                    subtitle: Text('Current: ₹${provider.savingsGoal.toStringAsFixed(0)}'),
+                    trailing: const Icon(Icons.edit),
+                    onTap: () => _showEditGoalDialog(context, provider),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text('App Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.dark_mode),
+                        title: const Text('Dark Mode'),
+                        trailing: Switch(
+                          value: provider.isDarkMode,
+                          onChanged: (val) => provider.toggleDarkMode(),
+                        ),
+                      ),
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.lock),
+                        title: const Text('Biometric Lock'),
+                        subtitle: const Text('Require fingerprint to open app'),
+                        trailing: Switch(
+                          value: provider.isBiometricEnabled,
+                          onChanged: (val) async {
+                            if (val) {
+                              bool authenticated = await AuthService.authenticate();
+                              if (authenticated) {
+                                provider.toggleBiometric(true);
+                              }
+                            } else {
+                              provider.toggleBiometric(false);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: InkWell(
+              onTap: () async {
+                final Uri url = Uri.parse('https://www.linkedin.com/in/manosekar-m/');
+                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                  debugPrint('Could not launch $url');
+                }
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  ),
+                ),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(provider.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showEditNameDialog(context, provider),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Made with ', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        Icon(Icons.favorite, color: Colors.red, size: 14),
+                        Text(' by manosekar_m', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Fin Tracker v1.0.0',
+                      style: TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          const Text('Financial Goals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.savings),
-              title: const Text('Monthly Savings Goal'),
-              subtitle: Text('Current: ₹${provider.savingsGoal.toStringAsFixed(0)}'),
-              trailing: const Icon(Icons.edit),
-              onTap: () => _showEditGoalDialog(context, provider),
-            ),
-          ),
-          const SizedBox(height: 32),
-          const Text('App Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.dark_mode),
-                  title: const Text('Dark Mode'),
-                  trailing: Switch(
-                    value: provider.isDarkMode,
-                    onChanged: (val) => provider.toggleDarkMode(),
-                  ),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.lock),
-                  title: const Text('Biometric Lock'),
-                  subtitle: const Text('Require fingerprint to open app'),
-                  trailing: Switch(
-                    value: provider.isBiometricEnabled,
-                    onChanged: (val) async {
-                      if (val) {
-                        bool authenticated = await AuthService.authenticate();
-                        if (authenticated) {
-                          provider.toggleBiometric(true);
-                        }
-                      } else {
-                        provider.toggleBiometric(false);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          const Center(
-            child: Text(
-              'FinTracker v1.0.0',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
             ),
           ),
         ],
