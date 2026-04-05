@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/constants.dart';
 
@@ -13,7 +14,16 @@ class InsightsScreen extends StatelessWidget {
     final breakdown = provider.categoryBreakdown;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Insights', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        title: const Text('Insights', style: TextStyle(fontWeight: FontWeight.bold)),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: _buildMonthSelector(context, provider),
+          ),
+        ),
+      ),
       body: breakdown.isEmpty
           ? Center(
               child: Column(
@@ -21,7 +31,7 @@ class InsightsScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
-                  const Text('No expense data to analyze'),
+                  const Text('No expense data for this month'),
                 ],
               ),
             )
@@ -42,7 +52,7 @@ class InsightsScreen extends StatelessWidget {
                           return PieChartSectionData(
                             color: category.color,
                             value: e.value,
-                            title: '${(e.value / provider.totalExpenses * 100).toStringAsFixed(0)}%',
+                            title: '${(e.value / (provider.totalExpenses == 0 ? 1 : provider.totalExpenses) * 100).toStringAsFixed(0)}%',
                             radius: 50,
                             titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                           );
@@ -63,7 +73,7 @@ class InsightsScreen extends StatelessWidget {
                       title: Text(e.key),
                       trailing: Text('₹${e.value.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: LinearProgressIndicator(
-                        value: e.value / provider.totalExpenses,
+                        value: provider.totalExpenses == 0 ? 0 : e.value / provider.totalExpenses,
                         backgroundColor: Colors.grey[200],
                         color: category.color,
                       ),
@@ -72,6 +82,43 @@ class InsightsScreen extends StatelessWidget {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildMonthSelector(BuildContext context, TransactionProvider provider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () {
+              provider.setSelectedMonth(
+                DateTime(provider.selectedMonth.year, provider.selectedMonth.month - 1),
+              );
+            },
+          ),
+          Text(
+            DateFormat('MMMM yyyy').format(provider.selectedMonth),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.chevron_right),
+            onPressed: () {
+              provider.setSelectedMonth(
+                DateTime(provider.selectedMonth.year, provider.selectedMonth.month + 1),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

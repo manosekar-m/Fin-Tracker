@@ -9,6 +9,7 @@ class TransactionProvider with ChangeNotifier {
   bool _isDarkMode = false;
   bool _isBiometricEnabled = false;
   String _userName = 'User';
+  DateTime _selectedMonth = DateTime.now();
 
   List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
@@ -16,6 +17,7 @@ class TransactionProvider with ChangeNotifier {
   bool get isDarkMode => _isDarkMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
   String get userName => _userName;
+  DateTime get selectedMonth => _selectedMonth;
 
   Future<void> loadTransactions() async {
     try {
@@ -40,6 +42,16 @@ class TransactionProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void setSelectedMonth(DateTime date) {
+    _selectedMonth = DateTime(date.year, date.month);
+    notifyListeners();
+  }
+
+  List<TransactionModel> get filteredTransactions {
+    return _transactions.where((tx) =>
+      tx.date.year == _selectedMonth.year && tx.date.month == _selectedMonth.month).toList();
   }
 
   Future<void> _seedDummyData() async {
@@ -120,8 +132,8 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  double get totalIncome => _transactions.where((t) => t.type == TransactionType.income).fold(0.0, (sum, item) => sum + item.amount);
-  double get totalExpenses => _transactions.where((t) => t.type == TransactionType.expense).fold(0.0, (sum, item) => sum + item.amount);
+  double get totalIncome => filteredTransactions.where((t) => t.type == TransactionType.income).fold(0.0, (sum, item) => sum + item.amount);
+  double get totalExpenses => filteredTransactions.where((t) => t.type == TransactionType.expense).fold(0.0, (sum, item) => sum + item.amount);
   double get currentBalance => totalIncome - totalExpenses;
   double get savingsProgress => _savingsGoal <= 0 ? 0 : (currentBalance / _savingsGoal).clamp(0.0, 1.0);
 
@@ -139,7 +151,7 @@ class TransactionProvider with ChangeNotifier {
 
   Map<String, double> get categoryBreakdown {
     Map<String, double> breakdown = {};
-    for (var tx in _transactions.where((t) => t.type == TransactionType.expense)) {
+    for (var tx in filteredTransactions.where((t) => t.type == TransactionType.expense)) {
       breakdown[tx.category] = (breakdown[tx.category] ?? 0) + tx.amount;
     }
     return breakdown;
