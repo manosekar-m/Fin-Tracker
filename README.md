@@ -73,12 +73,6 @@
 
 ---
 
-## 🎥 Demo Video
-
-👉 *Add your video link here*
-
----
-
 ## 🧠 Tech Stack
 
 * Flutter
