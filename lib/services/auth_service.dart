@@ -1,5 +1,6 @@
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   static final LocalAuthentication _auth = LocalAuthentication();
@@ -10,7 +11,7 @@ class AuthService {
       final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
       return canAuthenticate;
     } on PlatformException catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return false;
     }
   }
@@ -25,7 +26,7 @@ class AuthService {
         ),
       );
     } on PlatformException catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return false;
     }
   }

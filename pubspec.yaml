@@ -16,6 +16,7 @@ dependencies:
   local_auth: ^2.1.6
   uuid: ^4.2.2
   url_launcher: ^6.2.1
+  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:

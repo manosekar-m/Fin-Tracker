@@ -20,5 +20,4 @@ final List<CategoryModel> categories = [
   CategoryModel(name: 'Salary', icon: Icons.payments, color: Colors.teal),
   CategoryModel(name: 'Investment', icon: Icons.trending_up, color: Colors.cyan),
   CategoryModel(name: 'Gift', icon: Icons.card_giftcard, color: Colors.amber),
-  CategoryModel(name: 'Others', icon: Icons.more_horiz, color: Colors.grey),
 ];

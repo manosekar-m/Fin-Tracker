@@ -33,7 +33,7 @@ class TransactionModel {
       id: data['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
       type: _parseType(data['type']),
-      category: data['category']?.toString() ?? 'Others',
+      category: data['category']?.toString() ?? 'Other',
       date: data['date'] != null ? DateTime.parse(data['date']) : DateTime.now(),
       notes: data['notes']?.toString() ?? '',
     );
