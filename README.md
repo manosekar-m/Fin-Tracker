@@ -1,124 +1,126 @@
-# 💰 Personal Finance Companion
+# 💰 Fin Tracker — Modern Personal Finance Companion
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter">
-  <img src="https://img.shields.io/badge/Provider-State%20Management-green">
-  <img src="https://img.shields.io/badge/Hive-Local%20Database-yellow">
-  <img src="https://img.shields.io/badge/Status-Production%20Ready-success">
+  <img src="screenshots/banner.png" alt="Fin Tracker Banner" width="100%">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter&style=for-the-badge">
+  <img src="https://img.shields.io/badge/Provider-State%20Management-green?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Hive-Local%20Storage-yellow?logo=sqllite&style=for-the-badge">
+  <img src="https://img.shields.io/badge/Security-Biometric-red?logo=fingerprint&style=for-the-badge">
 </p>
 
 ---
 
 ## 🚀 Overview
 
-**Personal Finance Companion** is a modern Flutter app designed to help users **track expenses, manage income, and achieve savings goals** with a clean and intuitive user experience.
+**Fin Tracker** is a premium, high-performance personal finance management application built with **Flutter**. It empowers users to take control of their financial life with real-time expense tracking, insightful analytics, and goal-oriented saving strategies—all wrapped in a stunning, modern UI.
+
+Designed with a focus on **User Experience (UX)** and **Clean Architecture**, this project demonstrates industry-level development practices, including state management, persistent local storage, and secure biometric authentication.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### 📊 Dashboard
+### 📊 Dynamic Insights & Analytics
+- **Visualized Data**: Interactive charts powered by `fl_chart` to track income vs. expenses.
+- **Category Breakdown**: High-level overview of where your money goes.
+- **Trend Analysis**: Monitor weekly and monthly financial progress.
 
-* Balance overview
-* Income vs Expense tracking
-* Clean card UI
+### 🎯 Goal Tracking System
+- **Milestone Management**: Set monthly saving targets and visualize progress.
+- **Real-time Updates**: Instant feedback as you log transactions.
+- **Percentage Tracking**: Clear visibility into how close you are to your goals.
 
-### 💸 Transactions
+### 🔒 Enterprise-Grade Security
+- **Biometric Lock**: Privacy protected by Fingerprint/FaceID using `local_auth`.
+- **Local Sovereignty**: All data stays on your device using Hive's encrypted storage options.
 
-* Add / Edit / Delete transactions
-* Category-based organization
-* Persistent storage using Hive
-
-### 📈 Insights (Advanced)
-
-* 📊 Category-wise charts
-* 📉 Weekly & monthly trends
-* 📌 Smart analytics
-
-### 🎯 Savings Goal (Completed ✅)
-
-* Set monthly target
-* Track progress with % and progress bar
-* Real-time updates
-
-### 🔐 Security
-
-* Biometric authentication (Fingerprint)
-
-### 🌙 UI/UX
-
-* Modern design
-* Smooth navigation
-* Dark mode support
+### 🎨 Premium UI/UX
+- **Glassmorphism**: Modern aesthetic with subtle gradients and blur effects.
+- **Animations**: Smooth transitions and micro-animations for an "alive" feel.
+- **Responsiveness**: Pixel-perfect layout across Android, iOS, and Web.
 
 ---
 
-## 📸 Screenshots
+## 📸 Visual Walkthrough
 
-### 🏠 Dashboard
-
-![Dashboard](screenshots/dashboard.png)
-
-### 💸 Transactions
-
-![Transactions](screenshots/transactions.png)
-
-### 📊 Insights
-
-![Insights](screenshots/insights.png)
-
-### 🎯 Goals
-
-![Goals](screenshots/goals.png)
-
----
-
-## 🧠 Tech Stack
-
-* Flutter
-* Provider
-* Hive
-* fl_chart
-* local_auth
+<table border="0">
+  <tr>
+    <td width="50%">
+      <p align="center"><b>Dashboard</b></p>
+      <img src="screenshots/dashboard.png" width="100%">
+    </td>
+    <td width="50%">
+      <p align="center"><b>Transactions</b></p>
+      <img src="screenshots/transactions.png" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <p align="center"><b>Financial Insights</b></p>
+      <img src="screenshots/insights.png" width="100%">
+    </td>
+    <td width="50%">
+      <p align="center"><b>Savings Goals</b></p>
+      <img src="screenshots/goals.png" width="100%">
+    </td>
+  </tr>
+</table>
 
 ---
 
-## ⚙️ Installation
+## 🧠 Technical Excellence
 
-```bash
-git clone https://github.com/YOUR_USERNAME/personal-finance-companion.git
-cd personal-finance-companion
-flutter pub get
-flutter run
-```
+### Core Stack
+- **Framework**: [Flutter](https://flutter.dev/) (Multi-platform)
+- **State Management**: [Provider](https://pub.dev/packages/provider) (Clean, scalable, and reactive)
+- **Database**: [Hive](https://pub.dev/packages/hive) (Ultra-fast, NoSQL local database)
+- **Visualization**: [fl_chart](https://pub.dev/packages/fl_chart)
+- **Auth**: [local_auth](https://pub.dev/packages/local_auth) (Biometrics)
+
+### Architecture
+The project follows a **Modified MVC/MVVM** approach to ensure:
+- **Separation of Concerns**: UI, logic, and data layers are strictly decoupled.
+- **Scalability**: New features can be added with minimal impact on existing code.
+- **Performance**: Optimized rendering and efficient data fetching.
 
 ---
 
-## 🔥 What Makes This App Special
+## ⚙️ Quick Start
 
-✔ Clean architecture
-✔ Real-world fintech UI
-✔ Advanced insights & analytics
-✔ Goal tracking system
-✔ Production-ready structure
+### Prerequisites
+- Flutter SDK (>= 3.0.0)
+- Android Studio / VS Code
+
+### Installation
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/manosekar-m/Fin-Tracker.git
+   cd Fin-Tracker
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the app**
+   ```bash
+   flutter run
+   ```
 
 ---
 
 ## 👨‍💻 Author
 
 **Mano Sekar**
-🔗 https://www.linkedin.com/in/manosekar-m/
+*Full Stack Developer | UI/UX Enthusiast*
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](https://www.linkedin.com/in/manosekar-m/)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-black?logo=github)](https://github.com/manosekar-m)
 
 ---
 
-## ⭐ Support
-
-If you like this project:
-
-* ⭐ Star the repo
-* 🍴 Fork it
-* 📢 Share it
-
----
-
-> Built with ❤️ using Flutter
+> Built with ❤️ and precision using Flutter. If you find this project useful, don't forget to ⭐ it!
