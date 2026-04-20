@@ -130,7 +130,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
               child: filtered.isEmpty
                   ? _buildEmpty(context)
                   : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
                       itemCount: grouped.length,
                       itemBuilder: (ctx, i) {
                         final dateKey = grouped.keys.toList()[i];
@@ -238,16 +239,78 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
     return Dismissible(
       key: Key(tx.id),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
+      // ── Swipe RIGHT → Edit (green) ──────────────────────────────────
       background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF22C55E).withAlpha(38),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.edit_rounded, color: Color(0xFF22C55E)),
+            SizedBox(width: 6),
+            Text('Edit', style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.w700, fontSize: 13)),
+          ],
+        ),
+      ),
+      // ── Swipe LEFT → Delete (red) ───────────────────────────────────
+      secondaryBackground: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(color: cs.error.withAlpha(38), borderRadius: BorderRadius.circular(16)),
-        child: Icon(Icons.delete_outline_rounded, color: cs.error),
+        decoration: BoxDecoration(
+          color: cs.error.withAlpha(38),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text('Delete', style: TextStyle(color: cs.error, fontWeight: FontWeight.w700, fontSize: 13)),
+            const SizedBox(width: 6),
+            Icon(Icons.delete_outline_rounded, color: cs.error),
+          ],
+        ),
       ),
-      confirmDismiss: (dir) async => dir == DismissDirection.endToStart,
-      onDismissed: (_) => provider.deleteTransaction(tx.id),
+      confirmDismiss: (dir) async {
+        if (dir == DismissDirection.startToEnd) {
+          // Swipe right → show edit sheet, snap item back
+          showAddTransactionSheet(context, transaction: tx);
+          return false;
+        }
+        // Swipe left → confirm delete
+        return true;
+      },
+      onDismissed: (_) {
+        // Immediately delete from provider
+        provider.deleteTransaction(tx.id);
+        // Show 4-second undo snackbar
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.delete_outline_rounded, color: cs.onInverseSurface, size: 18),
+                const SizedBox(width: 10),
+                const Text('Transaction deleted'),
+              ],
+            ),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'UNDO',
+              onPressed: () => provider.addTransaction(tx),
+            ),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      },
       child: GestureDetector(
         onTap: () => showAddTransactionSheet(context, transaction: tx),
         child: Container(

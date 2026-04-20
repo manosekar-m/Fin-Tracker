@@ -26,6 +26,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       backgroundColor: cs.surface,
       body: SafeArea(
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(child: _buildHeader(context, provider)),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -54,7 +55,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   childCount: breakdown.length,
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SliverToBoxAdapter(child: SizedBox(height: 110)),
             ],
           ],
         ),

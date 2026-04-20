@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/main_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/auth_screen.dart';
 import 'services/hive_service.dart';
 import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
@@ -29,13 +31,25 @@ class _MyAppState extends State<MyApp> {
       create: (_) => TransactionProvider()..loadTransactions(),
       child: Consumer<TransactionProvider>(
         builder: (context, provider, child) {
+          final settings = HiveService.getSettingsBox();
+          final bool isFirstRun = settings.get('isFirstRun', defaultValue: true);
+          final bool isLoggedIn = settings.get('isLoggedIn', defaultValue: false);
+
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Finance Companion',
+            title: 'Fin Tracker',
             themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             home: Builder(builder: (context) {
+              if (isFirstRun) {
+                return const OnboardingScreen();
+              }
+
+              if (!isLoggedIn) {
+                return const AuthScreen();
+              }
+
               // Only trigger authentication if loaded and enabled
               if (!provider.isLoading && provider.isBiometricEnabled && !_isAuthenticated) {
                 _handleBiometrics(context);

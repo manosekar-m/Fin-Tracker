@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/transaction_provider.dart';
 import '../services/auth_service.dart';
+import '../services/hive_service.dart';
+import 'auth_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -11,191 +12,384 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<TransactionProvider>(context);
     final cs = Theme.of(context).colorScheme;
+    final userAvatar = provider.userAvatar;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: cs.surface,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-          children: [
-            // ─── Title ────────────────────────────────────────────────────
-            Text('Profile', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 28),
-
-            // ─── Avatar + Name ─────────────────────────────────────────────
-            Center(
-              child: Column(
+      body: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 240,
+            pinned: true,
+            stretch: true,
+            backgroundColor: cs.surface,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [cs.primary, cs.secondary],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  // Decorative Background Orbs
+                  Positioned(
+                    top: -50,
+                    right: -50,
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: cs.primary.withAlpha(20),
                       ),
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [cs.primary, cs.secondary],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: cs.primary.withAlpha(80),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 15),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 56,
+                              backgroundColor: cs.surface,
+                              backgroundImage: userAvatar != null
+                                  ? (userAvatar.startsWith('assets')
+                                      ? AssetImage(userAvatar) as ImageProvider
+                                      : NetworkImage(userAvatar))
+                                  : null,
+                              child: userAvatar == null
+                                  ? Icon(Icons.person_rounded,
+                                      size: 50, color: cs.primary)
+                                  : null,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 5,
+                            right: 5,
+                            child: GestureDetector(
+                              onTap: () =>
+                                  _showAvatarSelectionDialog(context, provider),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: cs.primary,
+                                  shape: BoxShape.circle,
+                                  border:
+                                      Border.all(color: cs.surface, width: 3),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha(50),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(Icons.camera_alt_rounded,
+                                    size: 16, color: cs.onPrimary),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            provider.userName,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.5,
+                                ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton.filledTonal(
+                            icon: const Icon(Icons.edit_rounded, size: 14),
+                            onPressed: () =>
+                                _showEditNameDialog(context, provider),
+                            constraints: const BoxConstraints(
+                                minWidth: 28, minHeight: 28),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  // ─── Monthly Summary ────────────────────────────────────────────
+                  _sectionLabel(context, 'Monthly Summary'),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: provider.isDarkMode
+                          ? Colors.white.withAlpha(10)
+                          : cs.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: cs.outline.withAlpha(60)),
                       boxShadow: [
                         BoxShadow(
-                          color: cs.primary.withAlpha(89),
-                          blurRadius: 24,
+                          color: Colors.black.withAlpha(10),
+                          blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: cs.surface,
-                      child: Icon(Icons.person_rounded, size: 46, color: cs.primary),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        provider.userName,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: () => _showEditNameDialog(context, provider),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: cs.primary.withAlpha(26),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.edit_rounded, size: 16, color: cs.primary),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text('Personal Finance Tracker', style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // ─── Monthly Summary ────────────────────────────────────────────
-            _sectionLabel(context, 'This Month'),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: _card(context),
-              child: Row(
-                children: [
-                  Expanded(child: _summaryTile(context, 'Income', '₹${_fmt(provider.totalIncome)}', const Color(0xFF22C55E))),
-                  Container(width: 1, height: 40, color: cs.outline.withAlpha(128)),
-                  Expanded(child: _summaryTile(context, 'Expenses', '₹${_fmt(provider.totalExpenses)}', cs.error)),
-                  Container(width: 1, height: 40, color: cs.outline.withAlpha(128)),
-                  Expanded(child: _summaryTile(context, 'Balance', '₹${_fmt(provider.currentBalance)}', cs.primary)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ─── Financial Goals ────────────────────────────────────────────
-            _sectionLabel(context, 'Financial Goals'),
-            const SizedBox(height: 10),
-            _settingTile(
-              context: context,
-              icon: Icons.savings_rounded,
-              iconBg: Colors.amber,
-              title: 'Monthly Savings Goal',
-              subtitle: '₹${provider.savingsGoal.toStringAsFixed(0)} target',
-              trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-              onTap: () => _showEditGoalDialog(context, provider),
-            ),
-            const SizedBox(height: 24),
-
-            // ─── App Settings ────────────────────────────────────────────────
-            _sectionLabel(context, 'App Settings'),
-            const SizedBox(height: 10),
-            Container(
-              decoration: _card(context),
-              child: Column(
-                children: [
-                  _switchTile(
-                    context: context,
-                    icon: Icons.dark_mode_rounded,
-                    iconBg: const Color(0xFF6366F1),
-                    title: 'Dark Mode',
-                    subtitle: 'Switch to dark appearance',
-                    value: provider.isDarkMode,
-                    onChanged: (_) => provider.toggleDarkMode(),
-                    isFirst: true,
-                    isLast: false,
-                  ),
-                  Divider(height: 1, indent: 72, color: cs.outline.withAlpha(128)),
-                  _switchTile(
-                    context: context,
-                    icon: Icons.fingerprint_rounded,
-                    iconBg: const Color(0xFF0D9488),
-                    title: 'Biometric Lock',
-                    subtitle: 'Fingerprint authentication',
-                    value: provider.isBiometricEnabled,
-                    onChanged: (val) async {
-                      if (val) {
-                        bool ok = await AuthService.authenticate();
-                        if (ok) provider.toggleBiometric(true);
-                      } else {
-                        provider.toggleBiometric(false);
-                      }
-                    },
-                    isFirst: false,
-                    isLast: true,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // ─── Footer ────────────────────────────────────────────────────────
-            GestureDetector(
-              onTap: () async {
-                final url = Uri.parse('https://www.linkedin.com/in/manosekar-m/');
-                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                  debugPrint('Could not launch $url');
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                decoration: BoxDecoration(
-                  color: cs.surface,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: cs.outline.withAlpha(128)),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Row(
                       children: [
-                        Text('Made with ', style: Theme.of(context).textTheme.bodySmall),
-                        const Icon(Icons.favorite_rounded, color: Colors.red, size: 13),
-                        Text(' by manosekar_m', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                        Expanded(
+                            child: _summaryTile(
+                                context,
+                                'Income',
+                                '₹${_fmt(provider.totalIncome)}',
+                                const Color(0xFF22C55E))),
+                        Container(
+                            width: 1,
+                            height: 40,
+                            color: cs.outline.withAlpha(60)),
+                        Expanded(
+                            child: _summaryTile(context, 'Expenses',
+                                '₹${_fmt(provider.totalExpenses)}', cs.error)),
+                        Container(
+                            width: 1,
+                            height: 40,
+                            color: cs.outline.withAlpha(60)),
+                        Expanded(
+                            child: _summaryTile(
+                                context,
+                                'Net Balance',
+                                '₹${_fmt(provider.currentBalance)}',
+                                cs.primary)),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text('Fin Tracker v1.0.0', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11)),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // ─── Financial Goals ────────────────────────────────────────────
+                  _sectionLabel(context, 'Financial Goals'),
+                  const SizedBox(height: 12),
+                  _settingTile(
+                    context: context,
+                    icon: Icons.savings_rounded,
+                    iconBg: Colors.amber,
+                    title: 'Monthly Savings Goal',
+                    subtitle:
+                        '₹${provider.savingsGoal.toStringAsFixed(0)} target set',
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                    onTap: () => _showEditGoalDialog(context, provider),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // ─── App Settings ────────────────────────────────────────────────
+                  _sectionLabel(context, 'App Management'),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: provider.isDarkMode
+                          ? Colors.white.withAlpha(10)
+                          : cs.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: cs.outline.withAlpha(60)),
+                    ),
+                    child: Column(
+                      children: [
+                        _switchTile(
+                          context: context,
+                          icon: Icons.dark_mode_rounded,
+                          iconBg: const Color(0xFF6366F1),
+                          title: 'Dark appearance',
+                          subtitle: 'Reduce eye strain',
+                          value: provider.isDarkMode,
+                          onChanged: (_) => provider.toggleDarkMode(),
+                          isFirst: true,
+                          isLast: false,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
+                        _switchTile(
+                          context: context,
+                          icon: Icons.fingerprint_rounded,
+                          iconBg: const Color(0xFF0D9488),
+                          title: 'Biometric security',
+                          subtitle: 'Lock app with fingerprint',
+                          value: provider.isBiometricEnabled,
+                          onChanged: (val) async {
+                            if (val) {
+                              bool ok = await AuthService.authenticate();
+                              if (ok) provider.toggleBiometric(true);
+                            } else {
+                              provider.toggleBiometric(false);
+                            }
+                          },
+                          isFirst: false,
+                          isLast: false,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
+                        _settingTile(
+                          context: context,
+                          icon: Icons.help_outline_rounded,
+                          iconBg: Colors.blue,
+                          title: 'App usage guide',
+                          subtitle: 'Learn how to use Fin Tracker',
+                          trailing:
+                              const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () => _showHowToUseDialog(context),
+                          noBorder: true,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
+                        _settingTile(
+                          context: context,
+                          icon: Icons.delete_forever_rounded,
+                          iconBg: Colors.red,
+                          title: 'Reset app data',
+                          subtitle: 'Wipe all transaction history',
+                          trailing: const Icon(Icons.chevron_right_rounded,
+                              size: 20, color: Colors.red),
+                          onTap: () => _showEraseDataDialog(context, provider),
+                          noBorder: true,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
+                        _settingTile(
+                          context: context,
+                          icon: Icons.logout_rounded,
+                          iconBg: Colors.orange,
+                          title: 'Logout',
+                          subtitle: 'Sign out from current session',
+                          trailing: const Icon(Icons.chevron_right_rounded,
+                              size: 20, color: Colors.orange),
+                          onTap: () => _showLogoutDialog(context),
+                          noBorder: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // ─── Footer ────────────────────────────────────────────────────────
+                  Center(
+                    child: Column(
+                      children: [
+                        // Box 1: Fin Tracker (Top)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: cs.surfaceContainerHighest.withAlpha(isDark ? 100 : 150),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'FIN TRACKER',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 3,
+                                  fontSize: 9,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Box 2: Made with Love & Version (Full width)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: cs.primary.withAlpha(isDark ? 30 : 15),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: cs.primary.withAlpha(40)),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Made with ', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11)),
+                                  const Icon(Icons.favorite_rounded, color: Colors.red, size: 12),
+                                  Text(' by manosekar_m',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          )),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'v1.0.0 • 2026',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontSize: 9,
+                                      color: cs.onSurfaceVariant.withAlpha(180),
+                                      letterSpacing: 1.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 110), // Scroll padding
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _sectionLabel(BuildContext context, String label) => Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.5));
+  Widget _sectionLabel(BuildContext context, String label) => Text(label,
+      style: Theme.of(context)
+          .textTheme
+          .bodySmall
+          ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.5));
 
-  Widget _summaryTile(BuildContext context, String label, String value, Color color) => Column(
+  Widget _summaryTile(
+          BuildContext context, String label, String value, Color color) =>
+      Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: color)),
+          Text(value,
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, fontSize: 14, color: color)),
           const SizedBox(height: 2),
           Text(label, style: Theme.of(context).textTheme.bodySmall),
         ],
@@ -209,17 +403,20 @@ class ProfileScreen extends StatelessWidget {
     String? subtitle,
     Widget? trailing,
     VoidCallback? onTap,
+    bool noBorder = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: _card(context),
+        decoration: noBorder ? null : _card(context),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: iconBg.withAlpha(38), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                  color: iconBg.withAlpha(38),
+                  borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: iconBg, size: 20),
             ),
             const SizedBox(width: 14),
@@ -228,7 +425,9 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: Theme.of(context).textTheme.titleSmall),
-                  if (subtitle != null) Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                  if (subtitle != null)
+                    Text(subtitle,
+                        style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
@@ -257,7 +456,9 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: iconBg.withAlpha(38), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+                color: iconBg.withAlpha(38),
+                borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: iconBg, size: 20),
           ),
           const SizedBox(width: 14),
@@ -303,9 +504,12 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Edit Name'),
-        content: TextField(controller: ctrl, decoration: const InputDecoration(labelText: 'Your Name')),
+        content: TextField(
+            controller: ctrl,
+            decoration: const InputDecoration(labelText: 'Your Name')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               if (ctrl.text.isNotEmpty) {
@@ -321,7 +525,8 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showEditGoalDialog(BuildContext context, TransactionProvider provider) {
-    final ctrl = TextEditingController(text: provider.savingsGoal.toStringAsFixed(0));
+    final ctrl =
+        TextEditingController(text: provider.savingsGoal.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -330,10 +535,12 @@ class ProfileScreen extends StatelessWidget {
         content: TextField(
           controller: ctrl,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Goal Amount', prefixText: '₹ '),
+          decoration:
+              const InputDecoration(labelText: 'Goal Amount', prefixText: '₹ '),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               final val = double.tryParse(ctrl.text);
@@ -345,6 +552,460 @@ class ProfileScreen extends StatelessWidget {
             child: const Text('Save'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showHowToUseDialog(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : cs.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: cs.outlineVariant.withAlpha(100),
+                    borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                        color: cs.primary.withAlpha(26),
+                        shape: BoxShape.circle),
+                    child: Icon(Icons.auto_awesome_rounded,
+                        color: cs.primary, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Quick Start Guide',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w900)),
+                        Text('Your journey from start to finish',
+                            style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Divider(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    _buildGuideItem(
+                      context,
+                      step: '01',
+                      title: 'Personalize Your Space',
+                      desc:
+                          'Start by setting up your character. Choose a premium avatar and name in the Profile section to make the app truly yours.',
+                      icon: Icons.person_add_alt_1_rounded,
+                      color: Colors.blue,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '02',
+                      title: 'Record Your Finances',
+                      desc:
+                          'Tap the floating "+" button on any screen to add a transaction. Categorize your spending or income and add notes for clarity.',
+                      icon: Icons.add_circle_rounded,
+                      color: Colors.green,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '03',
+                      title: 'Set Monthly Targets',
+                      desc:
+                          'Head to "Financial Goals" in Profile. Set a savings target to track your progress and stay motivated every month.',
+                      icon: Icons.savings_rounded,
+                      color: Colors.amber,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '04',
+                      title: 'Analyze & Optimize',
+                      desc:
+                          'Visit the "Insights" tab to see beautiful charts. Understand your category breakdown and optimize your spending habits.',
+                      icon: Icons.analytics_rounded,
+                      color: Colors.purple,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '05',
+                      title: 'Security & Comfort',
+                      desc:
+                          'Enable Biometric Lock for privacy and toggle Dark Mode in settings for a more comfortable night-time experience.',
+                      icon: Icons.security_rounded,
+                      color: Colors.teal,
+                      isLast: true,
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cs.primary,
+                          foregroundColor: cs.onPrimary,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                        ),
+                        child: const Text('Start Budgeting Now',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuideItem(
+    BuildContext context, {
+    required String step,
+    required String title,
+    required String desc,
+    required IconData icon,
+    required Color color,
+    bool isLast = false,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                    color: color.withAlpha(26),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color.withAlpha(51), width: 2)),
+                alignment: Alignment.center,
+                child: Text(step,
+                    style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12)),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                      width: 2,
+                      color: cs.outlineVariant.withAlpha(100),
+                      margin: const EdgeInsets.symmetric(vertical: 4)),
+                ),
+            ],
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, size: 18, color: color),
+                    const SizedBox(width: 8),
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(desc,
+                    style: TextStyle(
+                        color: cs.onSurfaceVariant, fontSize: 13, height: 1.5)),
+                if (!isLast) const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEraseDataDialog(
+      BuildContext context, TransactionProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        icon: const Icon(Icons.warning_amber_rounded,
+            color: Colors.red, size: 40),
+        title: const Text('Erase All Data?', textAlign: TextAlign.center),
+        content: const Text(
+          'This will permanently delete all your transactions. This action cannot be undone.',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12))),
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              provider.eraseAllData();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('All data erased'),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.all(16),
+                ),
+              );
+            },
+            child: const Text('Erase'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              final settings = HiveService.getSettingsBox();
+              await settings.put('isLoggedIn', false);
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  (route) => false,
+                );
+              }
+            },
+            child: const Text('Logout', style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAvatarSelectionDialog(
+      BuildContext context, TransactionProvider provider) {
+    final avatars = [
+      'https://img.icons8.com/color/480/user-male-circle--v1.png',
+      'https://img.icons8.com/color/480/astronaut.png',
+      'https://img.icons8.com/color/480/bear.png',
+      'https://img.icons8.com/color/480/cat.png',
+      'https://img.icons8.com/color/480/rubber-duck.png',
+      'https://img.icons8.com/color/480/fox.png',
+      'https://img.icons8.com/color/480/swan.png',
+      'https://img.icons8.com/color/480/boy.png',
+      'https://img.icons8.com/color/480/nerd.png',
+      'https://img.icons8.com/color/480/ninja.png',
+      'https://img.icons8.com/color/480/panda.png',
+      'https://img.icons8.com/color/480/user-female-circle.png',
+      'https://img.icons8.com/color/480/businesswoman.png',
+    ];
+    final cs = Theme.of(context).colorScheme;
+    String? tempSelected = provider.userAvatar;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            decoration: BoxDecoration(
+              color: provider.isDarkMode ? const Color(0xFF0F172A) : cs.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.outlineVariant.withAlpha(100),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Select an Avatar',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                ),
+                const SizedBox(height: 30),
+
+                // Selection Preview
+                Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [cs.primary, cs.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cs.primary.withAlpha(60),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: cs.surface,
+                      ),
+                      child: ClipOval(
+                        child: tempSelected != null
+                            ? Image.network(tempSelected!, fit: BoxFit.cover)
+                            : Icon(Icons.person_outline_rounded,
+                                size: 60, color: cs.primary),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      alignment: WrapAlignment.center,
+                      children: avatars.map((url) {
+                        final isSelected = tempSelected == url;
+                        return GestureDetector(
+                          onTap: () => setModalState(() => tempSelected = url),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 75,
+                            height: 75,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? cs.primary
+                                    : Colors.transparent,
+                                width: 3,
+                              ),
+                            ),
+                            padding: EdgeInsets.all(isSelected ? 3 : 0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: provider.isDarkMode
+                                    ? Colors.white.withAlpha(15)
+                                    : cs.surfaceContainerHighest,
+                              ),
+                              child: ClipOval(
+                                child: Image.network(
+                                  url,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(Icons.person,
+                                          color: cs.primary.withAlpha(100)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      provider.setUserAvatar(tempSelected);
+                      Navigator.pop(ctx);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: provider.isDarkMode
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFF1E3A8A),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Save Changes',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

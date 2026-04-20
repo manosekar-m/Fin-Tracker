@@ -61,18 +61,54 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text('Welcome back,', style: Theme.of(context).textTheme.bodySmall),
-              Text(
-                provider.userName,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [cs.primary, cs.secondary],
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: cs.surface,
+                  backgroundImage: provider.userAvatar != null
+                      ? (provider.userAvatar!.startsWith('assets')
+                          ? AssetImage(provider.userAvatar!) as ImageProvider
+                          : NetworkImage(provider.userAvatar!))
+                      : null,
+                  child: provider.userAvatar == null ? Icon(Icons.person_rounded, size: 24, color: cs.primary) : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Welcome back,', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    provider.userName,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                  ),
+                ],
               ),
             ],
           ),
           Row(
             children: [
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, size: 20),
+                style: IconButton.styleFrom(
+                  backgroundColor: cs.surfaceContainerHighest,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => provider.loadTransactions(),
+              ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.chevron_left),
                 style: IconButton.styleFrom(
@@ -328,6 +364,12 @@ class HomeScreen extends StatelessWidget {
     final maxSpending = spending.isEmpty ? 100.0 : spending.reduce((a, b) => a > b ? a : b);
     final chartMaxY = maxSpending == 0 ? 100.0 : maxSpending * 1.3;
 
+    final now = DateTime.now();
+    final dayLabels = List.generate(7, (i) {
+      final date = now.subtract(Duration(days: 6 - i));
+      return DateFormat('E').format(date).substring(0, 2);
+    });
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -377,10 +419,9 @@ class HomeScreen extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
                           return SideTitleWidget(
                             axisSide: meta.axisSide,
-                            child: Text(days[value.toInt() % 7], style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                            child: Text(dayLabels[value.toInt() % 7], style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
                           );
                         },
                       ),

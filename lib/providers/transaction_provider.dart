@@ -5,11 +5,15 @@ import '../services/hive_service.dart';
 class TransactionProvider with ChangeNotifier {
   List<TransactionModel> _transactions = [];
   bool _isLoading = true;
-  double _savingsGoal = 5000.0;
+  double _savingsGoal = 0.0;
   bool _isDarkMode = false;
   bool _isBiometricEnabled = false;
   String _userName = 'User';
   DateTime _selectedMonth = DateTime.now();
+  
+  bool _isFirstRun = true;
+  bool _isLoggedIn = false;
+  String? _userAvatar;
 
   List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
@@ -18,14 +22,20 @@ class TransactionProvider with ChangeNotifier {
   bool get isBiometricEnabled => _isBiometricEnabled;
   String get userName => _userName;
   DateTime get selectedMonth => _selectedMonth;
+  bool get isFirstRun => _isFirstRun;
+  bool get isLoggedIn => _isLoggedIn;
+  String? get userAvatar => _userAvatar;
 
   Future<void> loadTransactions() async {
     try {
       final settings = HiveService.getSettingsBox();
       _isDarkMode = settings.get('darkMode', defaultValue: false);
       _isBiometricEnabled = settings.get('biometric', defaultValue: false);
-      _savingsGoal = settings.get('savingsGoal', defaultValue: 5000.0);
+      _savingsGoal = settings.get('savingsGoal', defaultValue: 0.0);
       _userName = settings.get('userName', defaultValue: 'User');
+      _isFirstRun = settings.get('isFirstRun', defaultValue: true);
+      _isLoggedIn = settings.get('isLoggedIn', defaultValue: false);
+      _userAvatar = settings.get('userAvatar');
 
       final box = await HiveService.openBox();
       _transactions = box.values
@@ -33,15 +43,33 @@ class TransactionProvider with ChangeNotifier {
           .toList()
         ..sort((a, b) => b.date.compareTo(a.date));
 
-      if (_transactions.isEmpty) {
-        await _seedDummyData();
-      }
     } catch (e) {
       debugPrint('Error loading data: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void completeOnboarding() {
+    _isFirstRun = false;
+    HiveService.getSettingsBox().put('isFirstRun', false);
+    notifyListeners();
+  }
+
+  void login(String name) {
+    _isLoggedIn = true;
+    _userName = name;
+    final settings = HiveService.getSettingsBox();
+    settings.put('isLoggedIn', true);
+    settings.put('userName', name);
+    notifyListeners();
+  }
+
+  void logout() {
+    _isLoggedIn = false;
+    HiveService.getSettingsBox().put('isLoggedIn', false);
+    notifyListeners();
   }
 
   void setSelectedMonth(DateTime date) {
@@ -52,34 +80,6 @@ class TransactionProvider with ChangeNotifier {
   List<TransactionModel> get filteredTransactions {
     return _transactions.where((tx) =>
       tx.date.year == _selectedMonth.year && tx.date.month == _selectedMonth.month).toList();
-  }
-
-  Future<void> _seedDummyData() async {
-    final dummyData = [
-      TransactionModel(
-        id: 'seed_1',
-        amount: 50000,
-        type: TransactionType.income,
-        category: 'Salary',
-        date: DateTime.now().subtract(const Duration(days: 2)),
-        notes: 'Monthly salary',
-      ),
-      TransactionModel(
-        id: 'seed_2',
-        amount: 1500,
-        type: TransactionType.expense,
-        category: 'Food',
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        notes: 'Dinner',
-      ),
-    ];
-    
-    final box = await HiveService.openBox();
-    for (var tx in dummyData) {
-      await box.put(tx.id, tx.toMap());
-      _transactions.add(tx);
-    }
-    _transactions.sort((a, b) => b.date.compareTo(a.date));
   }
 
   Future<void> addTransaction(TransactionModel tx) async {
@@ -108,6 +108,13 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> eraseAllData() async {
+    final box = await HiveService.openBox();
+    await box.clear();
+    _transactions.clear();
+    notifyListeners();
+  }
+
   void toggleDarkMode() {
     _isDarkMode = !_isDarkMode;
     HiveService.getSettingsBox().put('darkMode', _isDarkMode);
@@ -129,6 +136,12 @@ class TransactionProvider with ChangeNotifier {
   void setUserName(String name) {
     _userName = name;
     HiveService.getSettingsBox().put('userName', _userName);
+    notifyListeners();
+  }
+
+  void setUserAvatar(String? avatar) {
+    _userAvatar = avatar;
+    HiveService.getSettingsBox().put('userAvatar', _userAvatar);
     notifyListeners();
   }
 
