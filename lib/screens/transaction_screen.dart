@@ -5,6 +5,7 @@ import '../providers/transaction_provider.dart';
 import '../models/transaction_model.dart';
 import '../utils/constants.dart';
 import '../widgets/add_transaction_sheet.dart';
+import '../widgets/glass_card.dart';
 
 class TransactionScreen extends StatefulWidget {
   const TransactionScreen({super.key});
@@ -168,13 +169,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
   Widget _buildSummaryStrip(BuildContext context, TransactionProvider provider) {
     final cs = Theme.of(context).colorScheme;
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.outline.withAlpha(128)),
-      ),
+      borderRadius: BorderRadius.circular(18),
       child: Row(
         children: [
           Expanded(
@@ -313,14 +310,10 @@ class _TransactionScreenState extends State<TransactionScreen> {
       },
       child: GestureDetector(
         onTap: () => showAddTransactionSheet(context, transaction: tx),
-        child: Container(
+        child: GlassCard(
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: cs.outline.withAlpha(128)),
-          ),
+          borderRadius: BorderRadius.circular(16),
           child: Row(
             children: [
               Container(

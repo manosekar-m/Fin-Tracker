@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction_model.dart';
 import '../utils/constants.dart';
+import '../widgets/glass_card.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
@@ -110,13 +111,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: cs.outline.withAlpha(128)),
-        ),
+        borderRadius: BorderRadius.circular(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -185,13 +182,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final cs = Theme.of(context).colorScheme;
     final pct = provider.totalExpenses == 0 ? 0.0 : value / provider.totalExpenses;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.outline.withAlpha(128)),
-      ),
+      borderRadius: BorderRadius.circular(18),
       child: Column(
         children: [
           Row(

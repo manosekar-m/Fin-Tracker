@@ -4,6 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction_model.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../widgets/glass_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -144,32 +146,24 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildBalanceCard(BuildContext context, TransactionProvider provider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final gradient = isDark
-        ? const LinearGradient(colors: [Color(0xFF00897B), Color(0xFF006064)], begin: Alignment.topLeft, end: Alignment.bottomRight)
-        : const LinearGradient(colors: [Color(0xFF00897B), Color(0xFF0097A7)], begin: Alignment.topLeft, end: Alignment.bottomRight);
+
+    final textColor = isDark ? Colors.white : Theme.of(context).colorScheme.onSurface;
+    final textMuted = isDark ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant;
+    final dividerColor = isDark ? Colors.white.withAlpha(38) : Theme.of(context).colorScheme.outline.withAlpha(50);
+    final circleColor = isDark ? Colors.white : Theme.of(context).colorScheme.primary;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Container(
-        width: double.infinity,
+      child: GlassCard(
+        opacity: isDark ? 0.08 : 0.05,
         padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00897B).withAlpha(isDark ? 51 : 89),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.circular(28),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned(right: -10, top: -20, child: _circle(80, 0.08)),
-            Positioned(right: 50, bottom: -30, child: _circle(100, 0.05)),
-            Positioned(left: -20, bottom: -10, child: _circle(60, 0.06)),
+            Positioned(right: -10, top: -20, child: _circle(80, 0.08, circleColor)),
+            Positioned(right: 50, bottom: -30, child: _circle(100, 0.05, circleColor)),
+            Positioned(left: -20, bottom: -10, child: _circle(60, 0.06, circleColor)),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -178,39 +172,39 @@ class HomeScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(38),
+                        color: dividerColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         DateFormat('MMMM yyyy').format(provider.selectedMonth),
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                        style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 14),
-                const Text('Net Balance', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                Text('Net Balance', style: TextStyle(color: textMuted, fontSize: 14)),
                 const SizedBox(height: 4),
                 Text(
                   '₹${_formatNum(provider.currentBalance)}',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 38,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1,
                   ),
-                ),
+                ).animate().fade(duration: 400.ms).scaleXY(begin: 0.9, end: 1.0, curve: Curves.easeOutBack),
                 const SizedBox(height: 28),
                 Container(
                   height: 1,
-                  color: Colors.white.withAlpha(38),
+                  color: dividerColor,
                 ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(child: _buildMetricChip('Income', provider.totalIncome, Icons.south_west, const Color(0xFF69F0AE))),
-                    Container(width: 1, height: 40, color: Colors.white.withAlpha(38)),
-                    Expanded(child: _buildMetricChip('Expenses', provider.totalExpenses, Icons.north_east, const Color(0xFFFF6B6B))),
+                    Expanded(child: _buildMetricChip('Income', provider.totalIncome, Icons.south_west, const Color(0xFF69F0AE), textColor, textMuted)),
+                    Container(width: 1, height: 40, color: dividerColor),
+                    Expanded(child: _buildMetricChip('Expenses', provider.totalExpenses, Icons.north_east, const Color(0xFFFF6B6B), textColor, textMuted)),
                   ],
                 ),
               ],
@@ -221,7 +215,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricChip(String label, double amount, IconData icon, Color color) {
+  Widget _buildMetricChip(String label, double amount, IconData icon, Color color, Color textColor, Color textMuted) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -235,8 +229,8 @@ class HomeScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-              Text('₹${_formatNum(amount)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+              Text(label, style: TextStyle(color: textMuted, fontSize: 11)),
+              Text('₹${_formatNum(amount)}', style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 15)),
             ],
           ),
         ],
@@ -267,14 +261,9 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _statCard(BuildContext context, String value, String label, IconData icon, Color color) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.outline.withAlpha(128)),
-      ),
+      borderRadius: BorderRadius.circular(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -297,13 +286,9 @@ class HomeScreen extends StatelessWidget {
     final pct = provider.savingsProgress.clamp(0.0, 1.0);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: cs.outline.withAlpha(128)),
-        ),
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -372,13 +357,9 @@ class HomeScreen extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: cs.outline.withAlpha(128)),
-        ),
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -399,18 +380,18 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             SizedBox(
               height: 160,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
+              child: LineChart(
+                LineChartData(
+                  minY: 0,
                   maxY: chartMaxY,
-                  barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
                       tooltipBgColor: cs.surfaceContainerHighest,
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        return BarTooltipItem(
-                          '₹${rod.toY.toStringAsFixed(0)}',
+                      getTooltipItems: (touchedSpots) {
+                        return touchedSpots.map((spot) => LineTooltipItem(
+                          '₹${spot.y.toStringAsFixed(0)}',
                           TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 12),
-                        );
+                        )).toList();
                       },
                     ),
                   ),
@@ -418,10 +399,13 @@ class HomeScreen extends StatelessWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        interval: 1,
                         getTitlesWidget: (value, meta) {
+                          final idx = value.toInt();
+                          if (idx < 0 || idx >= 7) return const SizedBox.shrink();
                           return SideTitleWidget(
                             axisSide: meta.axisSide,
-                            child: Text(dayLabels[value.toInt() % 7], style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                            child: Text(dayLabels[idx], style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
                           );
                         },
                       ),
@@ -433,29 +417,28 @@ class HomeScreen extends StatelessWidget {
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
-                    getDrawingHorizontalLine: (value) => FlLine(color: cs.outline.withAlpha(77), strokeWidth: 1),
+                    getDrawingHorizontalLine: (value) => FlLine(color: cs.outline.withAlpha(50), strokeWidth: 1),
                   ),
                   borderData: FlBorderData(show: false),
-                  barGroups: List.generate(7, (i) => BarChartGroupData(
-                    x: i,
-                    barRods: [
-                      BarChartRodData(
-                        toY: spending[i],
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: List.generate(7, (i) => FlSpot(i.toDouble(), spending[i])),
+                      isCurved: true,
+                      gradient: LinearGradient(colors: [cs.primary, cs.secondary]),
+                      barWidth: 4,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      shadow: Shadow(color: cs.secondary.withAlpha(150), blurRadius: 10, offset: const Offset(0, 4)),
+                      belowBarData: BarAreaData(
+                        show: true,
                         gradient: LinearGradient(
-                          colors: [cs.primary, cs.secondary],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                        ),
-                        width: 18,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show: true,
-                          toY: chartMaxY,
-                          color: cs.surfaceContainerHighest,
+                          colors: [cs.primary.withAlpha(80), cs.secondary.withAlpha(10)],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
                       ),
-                    ],
-                  )),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -485,14 +468,10 @@ class HomeScreen extends StatelessWidget {
     final amtColor = isIncome ? const Color(0xFF22C55E) : cs.error;
     final iconColor = isIncome ? const Color(0xFF22C55E) : cs.error;
 
-    return Container(
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.outline.withAlpha(128)),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Row(
         children: [
           Container(
@@ -535,9 +514,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _circle(double size, double opacity) => Container(
+  Widget _circle(double size, double opacity, Color color) => Container(
         width: size, height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withAlpha((opacity * 255).toInt())),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withAlpha((opacity * 255).toInt())),
       );
 
   static String _formatNum(double v) {

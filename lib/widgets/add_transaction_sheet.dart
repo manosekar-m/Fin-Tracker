@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction_model.dart';
 import '../utils/constants.dart';
+import 'package:image_picker/image_picker.dart';
+import '../services/ocr_service.dart';
+import 'dart:ui';
 
 class AddTransactionSheet extends StatefulWidget {
   final TransactionModel? existingTransaction;
@@ -23,6 +26,10 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
   late TransactionType _type;
   late String _category;
   late DateTime _date;
+
+  bool _isProcessingOcr = false;
+  final _ocrService = OCRService();
+  final _imagePicker = ImagePicker();
 
   static const _customKey = '__other__';
 
@@ -65,6 +72,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
     _notesCtrl.dispose();
     _customCatCtrl.dispose();
     _tabCtrl.dispose();
+    _ocrService.dispose();
     super.dispose();
   }
 
@@ -75,14 +83,20 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
     final isExpense = _type == TransactionType.expense;
     final accentColor = isExpense ? const Color(0xFFEF4444) : const Color(0xFF22C55E);
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
-      ),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.92,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0B1426).withAlpha(180) : Colors.white.withAlpha(220),
+            border: Border(top: BorderSide(color: Colors.white.withAlpha(isDark ? 20 : 100), width: 1)),
+          ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -106,6 +120,17 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
                   isEdit ? 'Edit Transaction' : 'New Transaction',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
+                if (!isEdit) ...[
+                  const SizedBox(width: 8),
+                  _isProcessingOcr
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : IconButton(
+                          icon: Icon(Icons.document_scanner_outlined, color: cs.primary),
+                          style: IconButton.styleFrom(backgroundColor: cs.primary.withAlpha(25)),
+                          tooltip: 'Scan Receipt',
+                          onPressed: _scanReceipt,
+                        ),
+                ],
                 const Spacer(),
                 if (isEdit)
                   IconButton(
@@ -312,6 +337,8 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 
@@ -489,6 +516,76 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
     }
     Navigator.pop(context);
   }
+
+  Future<void> _scanReceipt() async {
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Scan Receipt'),
+        content: const Text('Choose an image source to scan your receipt.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ImageSource.camera),
+            child: const Text('Camera'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
+            child: const Text('Gallery'),
+          ),
+        ],
+      ),
+    );
+
+    if (source == null) return;
+
+    final pickedFile = await _imagePicker.pickImage(source: source);
+    if (pickedFile == null) return;
+
+    setState(() => _isProcessingOcr = true);
+
+    try {
+      final result = await _ocrService.processImage(pickedFile.path);
+
+      if (!mounted) return;
+
+      setState(() {
+        if (result.amount != null) {
+          _amountCtrl.text = result.amount!.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '');
+        }
+        if (result.category != null) {
+          final known = categories.any((c) => c.name.toLowerCase() == result.category!.toLowerCase());
+          if (known) {
+            _category = categories.firstWhere((c) => c.name.toLowerCase() == result.category!.toLowerCase()).name;
+            _type = TransactionType.expense; // Generally receipts are expenses
+            _tabCtrl.index = 0;
+          } else {
+            _category = _customKey;
+            _customCatCtrl.text = result.category!;
+          }
+        }
+      });
+      
+      if (result.amount == null && result.category == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not extract any data from the receipt.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('Extracted: \u20B9${_amountCtrl.text} for $_category')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to process image.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessingOcr = false);
+      }
+    }
+  }
 }
 
 class _Cursor extends StatefulWidget {
@@ -539,10 +636,9 @@ class _NumericKeypad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-      color: cs.surface,
+      color: Colors.transparent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -5,6 +5,7 @@ import '../providers/transaction_provider.dart';
 import '../services/auth_service.dart';
 import '../services/hive_service.dart';
 import 'auth_screen.dart';
+import 'dart:ui';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -847,59 +848,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showEditNameDialog(BuildContext context, TransactionProvider provider) {
     final ctrl = TextEditingController(text: provider.userName);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Edit Name'),
-        content: TextField(
-            controller: ctrl,
-            decoration: const InputDecoration(labelText: 'Your Name')),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              if (ctrl.text.isNotEmpty) {
-                provider.setUserName(ctrl.text);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Save'),
+      builder: (ctx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF0B1426).withAlpha(180) : Colors.white.withAlpha(220),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withAlpha(isDark ? 20 : 100)),
           ),
-        ],
+          title: const Text('Edit Name'),
+          content: TextField(
+              controller: ctrl,
+              decoration: const InputDecoration(labelText: 'Your Name')),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () {
+                if (ctrl.text.isNotEmpty) {
+                  provider.setUserName(ctrl.text);
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _showEditGoalDialog(BuildContext context, TransactionProvider provider) {
-    final ctrl =
-        TextEditingController(text: provider.savingsGoal.toStringAsFixed(0));
+    final ctrl = TextEditingController(text: provider.savingsGoal.toStringAsFixed(0));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Savings Goal'),
-        content: TextField(
-          controller: ctrl,
-          keyboardType: TextInputType.number,
-          decoration:
-              const InputDecoration(labelText: 'Goal Amount', prefixText: '₹ '),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final val = double.tryParse(ctrl.text);
-              if (val != null) {
-                provider.setSavingsGoal(val);
-                Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Save'),
+      builder: (ctx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF0B1426).withAlpha(180) : Colors.white.withAlpha(220),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withAlpha(isDark ? 20 : 100)),
           ),
-        ],
+          title: const Text('Savings Goal'),
+          content: TextField(
+            controller: ctrl,
+            keyboardType: TextInputType.number,
+            decoration:
+                const InputDecoration(labelText: 'Goal Amount', prefixText: '₹ '),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () {
+                final val = double.tryParse(ctrl.text);
+                if (val != null) {
+                  provider.setSavingsGoal(val);
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -972,47 +988,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildGuideItem(
                       context,
                       step: '01',
-                      title: 'Personalize Your Space',
+                      title: 'Personalize Your Profile',
                       desc:
-                          'Start by setting up your character. Choose a premium avatar and name in the Profile section to make the app truly yours.',
-                      icon: Icons.person_add_alt_1_rounded,
+                          'Tap your avatar at the top to choose a fun character and enter your name. Make Fin Tracker truly yours.',
+                      icon: Icons.person_outline_rounded,
                       color: Colors.blue,
                     ),
                     _buildGuideItem(
                       context,
                       step: '02',
-                      title: 'Record Your Finances',
+                      title: 'Add Transactions Manually',
                       desc:
-                          'Tap the floating "+" button on any screen to add a transaction. Categorize your spending or income and add notes for clarity.',
-                      icon: Icons.add_circle_rounded,
-                      color: Colors.green,
+                          'Tap any "+" icon to record an expense or income. You can categorize it, add custom notes, and pick the exact date and time.',
+                      icon: Icons.edit_note_rounded,
+                      color: Colors.orange,
                     ),
                     _buildGuideItem(
                       context,
                       step: '03',
+                      title: 'Smart Receipt Scanner',
+                      desc:
+                          'Too lazy to type? In the "New Transaction" screen, tap the scanner icon to snap a picture of your receipt. We will automatically extract the amount and categorize it for you!',
+                      icon: Icons.document_scanner_rounded,
+                      color: Colors.teal,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '04',
                       title: 'Set Monthly Targets',
                       desc:
-                          'Head to "Financial Goals" in Profile. Set a savings target to track your progress and stay motivated every month.',
+                          'Head to the Profile section and set a "Monthly Savings Goal". Track your progress on the Home screen to stay motivated.',
                       icon: Icons.savings_rounded,
                       color: Colors.amber,
                     ),
                     _buildGuideItem(
                       context,
-                      step: '04',
-                      title: 'Analyze & Optimize',
+                      step: '05',
+                      title: 'Analyze Your Spending',
                       desc:
-                          'Visit the "Insights" tab to see beautiful charts. Understand your category breakdown and optimize your spending habits.',
-                      icon: Icons.analytics_rounded,
+                          'Visit the "Insights" tab. Tap on the glowing Donut Chart segments to see exactly where your money is going and optimize your habits.',
+                      icon: Icons.pie_chart_rounded,
                       color: Colors.purple,
                     ),
                     _buildGuideItem(
                       context,
-                      step: '05',
-                      title: 'Security & Comfort',
+                      step: '06',
+                      title: 'Secure Your Data',
                       desc:
-                          'Enable Biometric Lock for privacy and toggle Dark Mode in settings for a more comfortable night-time experience.',
-                      icon: Icons.security_rounded,
-                      color: Colors.teal,
+                          'Enable Biometric Lock in settings so only YOU can see your finances. You can also wipe all data if you need a fresh start.',
+                      icon: Icons.fingerprint_rounded,
+                      color: const Color(0xFF6366F1),
                       isLast: true,
                     ),
                     const SizedBox(height: 32),
@@ -1053,6 +1078,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     bool isLast = false,
   }) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1084,24 +1110,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(width: 20),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(icon, size: 18, color: color),
-                    const SizedBox(width: 8),
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(desc,
+            child: Container(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: color.withAlpha(isDark ? 50 : 25),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(icon, size: 20, color: color),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    desc,
                     style: TextStyle(
-                        color: cs.onSurfaceVariant, fontSize: 13, height: 1.5)),
-                if (!isLast) const SizedBox(height: 32),
-              ],
+                      color: cs.onSurfaceVariant,
+                      fontSize: 14,
+                      height: 1.5,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -1109,80 +1157,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showEraseDataDialog(
-      BuildContext context, TransactionProvider provider) {
+  void _showEraseDataDialog(BuildContext context, TransactionProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(Icons.warning_amber_rounded,
-            color: Colors.red, size: 40),
-        title: const Text('Erase All Data?', textAlign: TextAlign.center),
-        content: const Text(
-          'This will permanently delete all your transactions. This action cannot be undone.',
-          textAlign: TextAlign.center,
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(ctx),
-            style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12))),
-            child: const Text('Cancel'),
+      builder: (ctx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF0B1426).withAlpha(180) : Colors.white.withAlpha(220),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withAlpha(isDark ? 20 : 100)),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () {
-              provider.eraseAllData();
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('All data erased'),
-                  behavior: SnackBarBehavior.floating,
+          icon: const Icon(Icons.warning_amber_rounded,
+              color: Colors.red, size: 40),
+          title: const Text('Erase All Data?', textAlign: TextAlign.center),
+          content: const Text(
+            'This will permanently delete all your transactions. This action cannot be undone.',
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              style: OutlinedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.all(16),
-                ),
-              );
-            },
-            child: const Text('Erase'),
-          ),
-        ],
+                      borderRadius: BorderRadius.circular(12))),
+              child: const Text('Cancel'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                provider.eraseAllData();
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('All data erased'),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.all(16),
+                  ),
+                );
+              },
+              child: const Text('Erase'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () async {
-              final settings = HiveService.getSettingsBox();
-              await settings.put('isLoggedIn', false);
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const AuthScreen()),
-                  (route) => false,
-                );
-              }
-            },
-            child: const Text('Logout', style: TextStyle(color: Colors.orange)),
+      builder: (ctx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF0B1426).withAlpha(180) : Colors.white.withAlpha(220),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withAlpha(isDark ? 20 : 100)),
           ),
-        ],
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () async {
+                final settings = HiveService.getSettingsBox();
+                await settings.put('isLoggedIn', false);
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+              child: const Text('Logout', style: TextStyle(color: Colors.orange)),
+            ),
+          ],
+        ),
       ),
     );
   }

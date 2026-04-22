@@ -11,9 +11,9 @@ class AppTheme {
   static const _surfaceLight      = Color(0xFFFFFFFF);
   static const _surfaceHiLight    = Color(0xFFE8EDF2);
 
-  static const _bgDark            = Color(0xFF0A0F1E);
-  static const _surfaceDark       = Color(0xFF131C2F);
-  static const _surfaceHiDark     = Color(0xFF1C2840);
+  static const _bgDark            = Color(0xFF040914);
+  static const _surfaceDark       = Color(0x990B1426); // Semi-transparent for glass effect
+  static const _surfaceHiDark     = Color(0x9914203B);
 
   // ─── Text Theme ─────────────────────────────────────────────────
   static TextTheme _textTheme(Color base) => GoogleFonts.outfitTextTheme(TextTheme(

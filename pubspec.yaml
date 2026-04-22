@@ -17,6 +17,9 @@ dependencies:
   uuid: ^4.2.2
   url_launcher: ^6.2.1
   google_fonts: ^8.0.2
+  image_picker: ^1.2.1
+  google_mlkit_text_recognition: ^0.15.1
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:
