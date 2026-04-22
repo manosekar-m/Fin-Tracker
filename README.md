@@ -46,21 +46,21 @@ Designed with a focus on **User Experience (UX)** and **Clean Architecture**, th
   <tr>
     <td width="50%">
       <p align="center"><b>Dashboard</b></p>
-      <img src="screenshots/dashboard.png" width="100%">
+      <img src="screenshots/dashboard.png?v=1.1" width="100%">
     </td>
     <td width="50%">
       <p align="center"><b>Transactions</b></p>
-      <img src="screenshots/transactions.png" width="100%">
+      <img src="screenshots/transactions.png?v=1.1" width="100%">
     </td>
   </tr>
   <tr>
     <td width="50%">
       <p align="center"><b>Financial Insights</b></p>
-      <img src="screenshots/insights.png" width="100%">
+      <img src="screenshots/insights.png?v=1.1" width="100%">
     </td>
     <td width="50%">
       <p align="center"><b>Savings Goals</b></p>
-      <img src="screenshots/goals.png" width="100%">
+      <img src="screenshots/goals.png?v=1.1" width="100%">
     </td>
   </tr>
 </table>
