@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
 import 'services/hive_service.dart';
 import 'services/auth_service.dart';
@@ -22,6 +23,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool _splashDone = false;
   bool _isAuthenticated = false;
   bool _isAuthenticating = false;
 
@@ -41,7 +43,23 @@ class _MyAppState extends State<MyApp> {
             themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(provider.fontSizeFactor),
+                ),
+                child: child!,
+              );
+            },
             home: Builder(builder: (context) {
+              // ── Always show splash on launch ───────────────────────────
+              if (!_splashDone) {
+                return SplashScreen(
+                  onComplete: () => setState(() => _splashDone = true),
+                );
+              }
+
+              // ── Existing routing logic ─────────────────────────────────
               if (isFirstRun) {
                 return const OnboardingScreen();
               }
@@ -55,7 +73,7 @@ class _MyAppState extends State<MyApp> {
                 _handleBiometrics(context);
                 return _buildAuthScreen();
               }
-              
+
               if (provider.isLoading) {
                 return const Scaffold(body: Center(child: CircularProgressIndicator()));
               }

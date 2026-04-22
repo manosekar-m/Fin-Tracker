@@ -14,6 +14,7 @@ class TransactionProvider with ChangeNotifier {
   bool _isFirstRun = true;
   bool _isLoggedIn = false;
   String? _userAvatar;
+  double _fontSizeFactor = 1.0;
 
   List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
@@ -25,6 +26,7 @@ class TransactionProvider with ChangeNotifier {
   bool get isFirstRun => _isFirstRun;
   bool get isLoggedIn => _isLoggedIn;
   String? get userAvatar => _userAvatar;
+  double get fontSizeFactor => _fontSizeFactor;
 
   Future<void> loadTransactions() async {
     try {
@@ -36,6 +38,7 @@ class TransactionProvider with ChangeNotifier {
       _isFirstRun = settings.get('isFirstRun', defaultValue: true);
       _isLoggedIn = settings.get('isLoggedIn', defaultValue: false);
       _userAvatar = settings.get('userAvatar');
+      _fontSizeFactor = settings.get('fontSizeFactor', defaultValue: 1.0);
 
       final box = await HiveService.openBox();
       _transactions = box.values
@@ -142,6 +145,12 @@ class TransactionProvider with ChangeNotifier {
   void setUserAvatar(String? avatar) {
     _userAvatar = avatar;
     HiveService.getSettingsBox().put('userAvatar', _userAvatar);
+    notifyListeners();
+  }
+
+  void setFontSizeFactor(double factor) {
+    _fontSizeFactor = factor;
+    HiveService.getSettingsBox().put('fontSizeFactor', _fontSizeFactor);
     notifyListeners();
   }
 

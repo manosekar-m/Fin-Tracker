@@ -1,10 +1,6 @@
 # 💰 Fin Tracker — Modern Personal Finance Companion
 
 <p align="center">
-  <img src="screenshots/banner.png" alt="Fin Tracker Banner" width="100%">
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter&style=for-the-badge">
   <img src="https://img.shields.io/badge/Provider-State%20Management-green?style=for-the-badge">
   <img src="https://img.shields.io/badge/Hive-Local%20Storage-yellow?logo=sqllite&style=for-the-badge">

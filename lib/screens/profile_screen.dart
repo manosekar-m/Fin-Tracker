@@ -1,12 +1,264 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/transaction_provider.dart';
 import '../services/auth_service.dart';
 import '../services/hive_service.dart';
 import 'auth_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _isFontSliderExpanded = false;
+
+  void _showDeveloperCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Use the exact same colors the app uses
+    final sheetBg = Theme.of(context).scaffoldBackgroundColor;
+    final cardBg  = cs.surface;
+
+    // Permanent boy avatar
+    const devAvatar = 'https://img.icons8.com/color/480/boy.png';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: BoxDecoration(
+          color: sheetBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Drag handle ────────────────────────────────────────
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: cs.outlineVariant.withAlpha(120),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // ── Header row: emoji + "Developer" ────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('😀', style: TextStyle(fontSize: 22)),
+                const SizedBox(width: 8),
+                Text(
+                  'Developer',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF0D1B2A),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // ── Inner dark card ─────────────────────────────────────
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withAlpha(18)
+                      : cs.outline.withAlpha(60),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // ── Avatar + speech-bubble wave ─────────────────
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Avatar circle
+                      Container(
+                        width: 96,
+                        height: 96,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [cs.primary, cs.secondary],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: cs.primary.withAlpha(70),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(3),
+                        child: CircleAvatar(
+                          backgroundColor: cardBg,
+                          backgroundImage:
+                              const NetworkImage(devAvatar),
+                        ),
+                      ),
+                      // Speech bubble with waving hand
+                      Positioned(
+                        top: -14,
+                        right: -18,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1C2840)
+                                : Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(40),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: WavingHandWidget(size: 22),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  // ── Name ────────────────────────────────────────
+                  Text(
+                    'Manosekar M',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0D1B2A),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // ── Subtitle ────────────────────────────────────
+                  Text(
+                    'Fin Tracker Creator | Mobile Application Developer',
+                    style: TextStyle(
+                      color: isDark
+                          ? Colors.white.withAlpha(150)
+                          : const Color(0xFF607080),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Divider ─────────────────────────────────────
+                  Container(
+                    width: 40, height: 2,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withAlpha(40)
+                          : cs.outline.withAlpha(100),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Side-by-side buttons ─────────────────────────
+                  Row(
+                    children: [
+                      // GitHub
+                      Expanded(
+                        child: _socialButton(
+                          label: 'GitHub',
+                          icon: Icons.code_rounded,
+                          bg: isDark
+                              ? const Color(0xFF21262D)
+                              : const Color(0xFF24292F),
+                          url: 'https://github.com/manosekar-m',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // LinkedIn
+                      Expanded(
+                        child: _socialButton(
+                          label: 'LinkedIn',
+                          icon: Icons.link_rounded,
+                          bg: const Color(0xFF0A66C2),
+                          url: 'https://www.linkedin.com/in/manosekar-m/',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _socialButton({
+    required String label,
+    required IconData icon,
+    required Color bg,
+    required String url,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        // Directly launch the URL. `canLaunchUrl` can silently fail on Android 11+
+        // if the <queries> manifest tags are not set up.
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: bg.withAlpha(80),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +511,21 @@ class ProfileScreen extends StatelessWidget {
                             height: 1,
                             indent: 70,
                             color: cs.outline.withAlpha(60)),
+                        _sliderTile(
+                          context: context,
+                          icon: Icons.text_fields_rounded,
+                          iconBg: const Color(0xFFEC4899),
+                          title: 'Font Size',
+                          subtitle: 'Scale: ${provider.fontSizeFactor.toStringAsFixed(1)}x',
+                          value: provider.fontSizeFactor,
+                          isExpanded: _isFontSliderExpanded,
+                          onToggle: () => setState(() => _isFontSliderExpanded = !_isFontSliderExpanded),
+                          onChanged: (val) => provider.setFontSizeFactor(val),
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
                         _settingTile(
                           context: context,
                           icon: Icons.help_outline_rounded,
@@ -327,40 +594,43 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Box 2: Made with Love & Version (Full width)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: cs.primary.withAlpha(isDark ? 30 : 15),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: cs.primary.withAlpha(40)),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text('Made with ', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11)),
-                                  const Icon(Icons.favorite_rounded, color: Colors.red, size: 12),
-                                  Text(' by manosekar_m',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                          )),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'v1.0.0 • 2026',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontSize: 9,
-                                      color: cs.onSurfaceVariant.withAlpha(180),
-                                      letterSpacing: 1.5,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                              ),
-                            ],
+                        // Box 2: Made with Love & Version (Full width) — tap to open dev card
+                        GestureDetector(
+                          onTap: () => _showDeveloperCard(context),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            decoration: BoxDecoration(
+                              color: cs.primary.withAlpha(isDark ? 30 : 15),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: cs.primary.withAlpha(40)),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('Made with ', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11)),
+                                    const Icon(Icons.favorite_rounded, color: Colors.red, size: 12),
+                                    Text(' by manosekar_m',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
+                                            )),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'v1.0.0 • 2026',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontSize: 9,
+                                        color: cs.onSurfaceVariant.withAlpha(180),
+                                        letterSpacing: 1.5,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 110), // Scroll padding
@@ -450,6 +720,8 @@ class ProfileScreen extends StatelessWidget {
     required bool isLast,
   }) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
@@ -475,10 +747,86 @@ class ProfileScreen extends StatelessWidget {
             value: value,
             activeTrackColor: cs.primary.withAlpha(128),
             activeThumbColor: cs.primary,
+            inactiveTrackColor: isDark ? Colors.white.withAlpha(30) : null,
+            inactiveThumbColor: isDark ? Colors.white.withAlpha(150) : null,
             onChanged: onChanged,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _sliderTile({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconBg,
+    required String title,
+    required String subtitle,
+    required double value,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required ValueChanged<double> onChanged,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onToggle,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      color: iconBg.withAlpha(38),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Icon(icon, color: iconBg, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: Theme.of(context).textTheme.titleSmall),
+                      Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                Transform.rotate(
+                  angle: isExpanded ? 1.57 : 0, // 90 degrees if expanded
+                  child: const Icon(Icons.chevron_right_rounded, size: 20),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox(width: double.infinity),
+          secondChild: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 4,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+              ),
+              child: Slider(
+                value: value,
+                min: 0.8,
+                max: 1.4,
+                divisions: 6,
+                activeColor: cs.primary,
+                inactiveColor: cs.primary.withAlpha(50),
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+          crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 250),
+        ),
+      ],
     );
   }
 
@@ -1007,6 +1355,55 @@ class ProfileScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+// ─── Waving Hand Animation Widget ─────────────────────────────────────────────
+class WavingHandWidget extends StatefulWidget {
+  final double size;
+  const WavingHandWidget({super.key, this.size = 64});
+
+  @override
+  State<WavingHandWidget> createState() => _WavingHandWidgetState();
+}
+
+class _WavingHandWidgetState extends State<WavingHandWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _wave;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+
+    _wave = Tween<double>(begin: -0.45, end: 0.45).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _wave,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _wave.value,
+          alignment: Alignment.bottomCenter,
+          child: child,
+        );
+      },
+      child: Text('👋', style: TextStyle(fontSize: widget.size)),
     );
   }
 }

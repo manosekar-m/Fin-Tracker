@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/hive_service.dart';
 import 'main_screen.dart';
+import 'splash_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -53,13 +54,23 @@ class _AuthScreenState extends State<AuthScreen> {
   void _onAuthSuccess(String name) async {
     final settings = HiveService.getSettingsBox();
     await settings.put('isLoggedIn', true);
-    
+
     if (mounted) {
       final provider = context.read<TransactionProvider>();
       provider.login(name);
-      
+
+      // Show the "FIN TRACKER" splash before entering the app
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
+        MaterialPageRoute(
+          builder: (_) => SplashScreen(
+            onComplete: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const MainScreen()),
+                (route) => false,
+              );
+            },
+          ),
+        ),
         (route) => false,
       );
     }
