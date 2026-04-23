@@ -30,12 +30,11 @@ Built with **Flutter**, this application leverages high-end design principles li
 *   **Offline Sovereignty**: Powered by `Hive`, a high-performance NoSQL database, ensuring 100% data persistence even in zero-connectivity environments.
 *   **Secure Enclave**: Integrated `local_auth` for biometric protection (Fingerprint/FaceID), keeping sensitive financial data strictly private.
 
-### 📈 Advanced Analytics & UX
-*   **Dynamic Staggered Branding**: A custom-engineered splash experience with character-by-character animations.
-*   **Intelligent Insights**: Interactive data visualization using `fl_chart`, providing deep dives into spending patterns and trend analysis.
-*   **Goal-Centric Logic**: A dedicated savings ecosystem that motivates users by visualizing progress through real-time calculation engines.
 *   **Smart OCR Scanning**: Advanced receipt parsing using `google_mlkit_text_recognition` to automatically extract amounts, dates, categories, and merchant names from images.
 *   **Rough Plans (Smart Budgeting)**: A dedicated planning ecosystem for trips and major purchases. Features "Smart Notes" technology that automatically detects and sums expenses from free-form text.
+*   **Motion-Driven Experience**: Orchestrated animations using `flutter_animate` for a fluid, high-end mobile feel.
+*   **Biometric Enclave**: Integrated `local_auth` for military-grade biometric protection (Fingerprint/FaceID).
+*   **Glassmorphic Design System**: A custom UI framework utilizing dynamic blurs and translucent layers for a modern, premium aesthetic.
 *   **Premium Customization**: Global font scaling and theme-matched UI components (Light/Dark mode) that adapt to user accessibility needs.
 
 ---
@@ -75,6 +74,7 @@ Built with **Flutter**, this application leverages high-end design principles li
 - **State**: Provider (Scalable & decoupled)
 - **Charts**: fl_chart (Fully interactive & customizable)
 - **OCR Engine**: Google ML Kit (High-accuracy text recognition)
+- **Motion**: flutter_animate (Fluid & staggered animations)
 - **Security**: local_auth (Biometric hardware integration)
 - **Typography**: Google Fonts (Outfit)
 
@@ -109,6 +109,8 @@ Built with **Flutter**, this application leverages high-end design principles li
 ---
 
 ## 🏗️ Roadmap
+- [x] Smart OCR Receipt Scanning
+- [x] Rough Plans with Smart Notes
 - [ ] Multi-currency support (localization)
 - [ ] PDF statement generation
 - [ ] Budget category limit alerts
