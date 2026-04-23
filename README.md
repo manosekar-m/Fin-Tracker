@@ -34,6 +34,8 @@ Built with **Flutter**, this application leverages high-end design principles li
 *   **Dynamic Staggered Branding**: A custom-engineered splash experience with character-by-character animations.
 *   **Intelligent Insights**: Interactive data visualization using `fl_chart`, providing deep dives into spending patterns and trend analysis.
 *   **Goal-Centric Logic**: A dedicated savings ecosystem that motivates users by visualizing progress through real-time calculation engines.
+*   **Smart OCR Scanning**: Advanced receipt parsing using `google_mlkit_text_recognition` to automatically extract amounts, dates, categories, and merchant names from images.
+*   **Rough Plans (Smart Budgeting)**: A dedicated planning ecosystem for trips and major purchases. Features "Smart Notes" technology that automatically detects and sums expenses from free-form text.
 *   **Premium Customization**: Global font scaling and theme-matched UI components (Light/Dark mode) that adapt to user accessibility needs.
 
 ---
@@ -72,6 +74,7 @@ Built with **Flutter**, this application leverages high-end design principles li
 - **Storage**: Hive (Lightweight & blazing fast)
 - **State**: Provider (Scalable & decoupled)
 - **Charts**: fl_chart (Fully interactive & customizable)
+- **OCR Engine**: Google ML Kit (High-accuracy text recognition)
 - **Security**: local_auth (Biometric hardware integration)
 - **Typography**: Google Fonts (Outfit)
 

@@ -512,6 +512,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 1,
                             indent: 70,
                             color: cs.outline.withAlpha(60)),
+                        _switchTile(
+                          context: context,
+                          icon: Icons.assignment_outlined,
+                          iconBg: const Color(0xFF8B5CF6),
+                          title: 'Rough Plans',
+                          subtitle: 'Plan trips or big purchases',
+                          value: provider.isRoughPlansEnabled,
+                          onChanged: (val) => provider.toggleRoughPlans(val),
+                          isFirst: false,
+                          isLast: false,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
                         _sliderTile(
                           context: context,
                           icon: Icons.text_fields_rounded,

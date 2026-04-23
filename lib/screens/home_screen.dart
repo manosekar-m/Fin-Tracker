@@ -6,6 +6,7 @@ import '../providers/transaction_provider.dart';
 import '../models/transaction_model.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/add_rough_plan_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,6 +33,10 @@ class HomeScreen extends StatelessWidget {
                         SliverToBoxAdapter(child: _buildSavingsGoal(context, provider)),
                         const SliverToBoxAdapter(child: SizedBox(height: 20)),
                         SliverToBoxAdapter(child: _buildChartSection(context, provider)),
+                        if (provider.isRoughPlansEnabled) ...[
+                          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                          SliverToBoxAdapter(child: _buildRoughPlansSection(context, provider)),
+                        ],
                         const SliverToBoxAdapter(child: SizedBox(height: 20)),
                         SliverToBoxAdapter(child: _buildRecentHeader(context, provider)),
                         if (provider.filteredTransactions.isEmpty)
@@ -510,6 +515,119 @@ class HomeScreen extends StatelessWidget {
             Text('No transactions this month', style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRoughPlansSection(BuildContext context, TransactionProvider provider) {
+    final cs = Theme.of(context).colorScheme;
+    final plans = provider.roughPlans;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Rough Plans', style: Theme.of(context).textTheme.titleSmall),
+              IconButton(
+                onPressed: () => showAddRoughPlanSheet(context),
+                icon: Icon(Icons.add_circle_outline_rounded, color: cs.primary, size: 22),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (plans.isEmpty)
+            GestureDetector(
+              onTap: () => showAddRoughPlanSheet(context),
+              child: GlassCard(
+                padding: const EdgeInsets.all(20),
+                borderRadius: BorderRadius.circular(20),
+                child: Row(
+                  children: [
+                    Icon(Icons.post_add_rounded, color: cs.primary.withAlpha(180)),
+                    const SizedBox(width: 12),
+                    Text('Create your first rough plan...', style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+                  ],
+                ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: plans.length,
+              itemBuilder: (ctx, i) {
+                final plan = plans[i];
+                return GestureDetector(
+                  onTap: () => showAddRoughPlanSheet(context, plan: plan),
+                  child: GlassCard(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(16),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: cs.primary.withAlpha(26),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.assignment_outlined, color: cs.primary, size: 20),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(plan.title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                              if (plan.notes.isNotEmpty)
+                                Text(
+                                  plan.notes,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (plan.budget > 0)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '₹${_formatNum(plan.remainingBudget)}',
+                                style: TextStyle(
+                                  color: plan.remainingBudget >= 0 ? cs.primary : cs.error,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text('Left', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10)),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '₹${_formatNum(plan.budget)}',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+                                  ),
+                                  Text(' budget', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10, color: cs.onSurfaceVariant.withAlpha(150))),
+                                ],
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }

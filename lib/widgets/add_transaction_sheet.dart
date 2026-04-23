@@ -552,6 +552,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
         if (result.amount != null) {
           _amountCtrl.text = result.amount!.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '');
         }
+        if (result.date != null) {
+          _date = result.date!;
+        }
+        if (result.notes != null) {
+          _notesCtrl.text = result.notes!;
+        }
         if (result.category != null) {
           final known = categories.any((c) => c.name.toLowerCase() == result.category!.toLowerCase());
           if (known) {
@@ -565,13 +571,18 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
         }
       });
       
-      if (result.amount == null && result.category == null) {
+      if (result.amount == null && result.category == null && result.date == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not extract any data from the receipt.')),
         );
       } else {
+        String msg = 'Extracted: ';
+        if (result.amount != null) msg += '₹${_amountCtrl.text} ';
+        if (result.category != null) msg += 'for $_category ';
+        if (result.date != null) msg += 'on ${_formatDate(_date)}';
+        
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Extracted: \u20B9${_amountCtrl.text} for $_category')),
+           SnackBar(content: Text(msg.trim())),
         );
       }
     } catch (e) {

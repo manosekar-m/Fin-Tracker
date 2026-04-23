@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
 import '../services/hive_service.dart';
+import '../models/rough_plan_model.dart';
 
 class TransactionProvider with ChangeNotifier {
   List<TransactionModel> _transactions = [];
@@ -15,6 +16,8 @@ class TransactionProvider with ChangeNotifier {
   bool _isLoggedIn = false;
   String? _userAvatar;
   double _fontSizeFactor = 1.0;
+  bool _isRoughPlansEnabled = false;
+  List<RoughPlanModel> _roughPlans = [];
 
   List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
@@ -27,6 +30,8 @@ class TransactionProvider with ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   String? get userAvatar => _userAvatar;
   double get fontSizeFactor => _fontSizeFactor;
+  bool get isRoughPlansEnabled => _isRoughPlansEnabled;
+  List<RoughPlanModel> get roughPlans => _roughPlans;
 
   Future<void> loadTransactions() async {
     try {
@@ -39,6 +44,13 @@ class TransactionProvider with ChangeNotifier {
       _isLoggedIn = settings.get('isLoggedIn', defaultValue: false);
       _userAvatar = settings.get('userAvatar');
       _fontSizeFactor = settings.get('fontSizeFactor', defaultValue: 1.0);
+      _isRoughPlansEnabled = settings.get('roughPlansEnabled', defaultValue: false);
+
+      final roughBox = HiveService.getRoughPlansBox();
+      _roughPlans = roughBox.values
+          .map((e) => RoughPlanModel.fromMap(Map<String, dynamic>.from(e)))
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       final box = await HiveService.openBox();
       _transactions = box.values
@@ -151,6 +163,36 @@ class TransactionProvider with ChangeNotifier {
   void setFontSizeFactor(double factor) {
     _fontSizeFactor = factor;
     HiveService.getSettingsBox().put('fontSizeFactor', _fontSizeFactor);
+    notifyListeners();
+  }
+
+  void toggleRoughPlans(bool value) {
+    _isRoughPlansEnabled = value;
+    HiveService.getSettingsBox().put('roughPlansEnabled', _isRoughPlansEnabled);
+    notifyListeners();
+  }
+
+  Future<void> addRoughPlan(RoughPlanModel plan) async {
+    final box = HiveService.getRoughPlansBox();
+    await box.put(plan.id, plan.toMap());
+    _roughPlans.insert(0, plan);
+    notifyListeners();
+  }
+
+  Future<void> updateRoughPlan(RoughPlanModel plan) async {
+    final box = HiveService.getRoughPlansBox();
+    await box.put(plan.id, plan.toMap());
+    final index = _roughPlans.indexWhere((p) => p.id == plan.id);
+    if (index != -1) {
+      _roughPlans[index] = plan;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteRoughPlan(String id) async {
+    final box = HiveService.getRoughPlansBox();
+    await box.delete(id);
+    _roughPlans.removeWhere((p) => p.id == id);
     notifyListeners();
   }
 
