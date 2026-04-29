@@ -137,9 +137,25 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
                     icon: Icon(Icons.delete_outline_rounded, color: cs.error),
                     style: IconButton.styleFrom(backgroundColor: cs.error.withAlpha(20)),
                     onPressed: () {
+                      final tx = widget.existingTransaction!;
                       Provider.of<TransactionProvider>(context, listen: false)
-                          .deleteTransaction(widget.existingTransaction!.id);
+                          .deleteTransaction(tx.id);
                       Navigator.pop(context);
+                      
+                      ScaffoldMessenger.of(context).clearSnackBars();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Transaction deleted'),
+                          duration: const Duration(seconds: 5),
+                          action: SnackBarAction(
+                            label: 'UNDO',
+                            onPressed: () => Provider.of<TransactionProvider>(context, listen: false).addTransaction(tx),
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          margin: const EdgeInsets.all(16),
+                        ),
+                      );
                     },
                   )
                 else
