@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
                         offset: Offset(0, _slide[i].value),
                         child: Text(
                           _chars[i],
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.plusJakartaSans(
                             color: letterColor,
                             fontSize: 38,
                             fontWeight: FontWeight.w900,
@@ -123,7 +123,7 @@ class _SplashScreenState extends State<SplashScreen>
                   opacity: _tagFade.value,
                   child: Text(
                     'Your Money, Simplified',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.plusJakartaSans(
                       color: taglineColor,
                       fontSize: 13,
                       fontWeight: FontWeight.w400,

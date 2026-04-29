@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../widgets/add_transaction_sheet.dart';
 import 'home_screen.dart';
 import 'transaction_screen.dart';
@@ -39,27 +40,41 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
       body: IndexedStack(index: _selectedIndex, children: _screens),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _buildFab(context),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          border: Border(top: BorderSide(color: cs.outline.withAlpha(89), width: 1)),
-          boxShadow: isDark ? [] : [
-            BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 20, offset: const Offset(0, -4)),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 64,
-            child: Row(
-              children: [
-                // Left two items
-                ...[0, 1].map((i) => Expanded(child: _navItem(context, i))),
-                // FAB spacer
-                const SizedBox(width: 72),
-                // Right two items
-                ...[2, 3].map((i) => Expanded(child: _navItem(context, i))),
-              ],
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              height: 76,
+              decoration: BoxDecoration(
+                color: cs.surface.withAlpha(isDark ? 160 : 180),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: isDark 
+                      ? Colors.white.withAlpha(20) 
+                      : cs.primary.withAlpha(60),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(isDark ? 20 : 40),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Left two items
+                  ...[0, 1].map((i) => Expanded(child: _navItem(context, i))),
+                  // FAB spacer
+                  const SizedBox(width: 72),
+                  // Right two items
+                  ...[2, 3].map((i) => Expanded(child: _navItem(context, i))),
+                ],
+              ),
             ),
           ),
         ),

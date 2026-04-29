@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   'Developer',
                   style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF0D1B2A),
+                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
@@ -148,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     'Manosekar M',
                     style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF0D1B2A),
+                      color: isDark ? Colors.white : const Color(0xFF1A1A1A),
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.3,
@@ -162,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(
                       color: isDark
                           ? Colors.white.withAlpha(150)
-                          : const Color(0xFF607080),
+                          : const Color(0xFF706B5E),
                       fontSize: 13,
                       fontWeight: FontWeight.w400,
                     ),
@@ -424,7 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 context,
                                 'Income',
                                 '₹${_fmt(provider.totalIncome)}',
-                                const Color(0xFF22C55E))),
+                                const Color(0xFF10B981))),
                         Container(
                             width: 1,
                             height: 40,
@@ -478,7 +478,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _switchTile(
                           context: context,
                           icon: Icons.dark_mode_rounded,
-                          iconBg: const Color(0xFF6366F1),
+                          iconBg: const Color(0xFFC5A059),
                           title: 'Dark appearance',
                           subtitle: 'Reduce eye strain',
                           value: provider.isDarkMode,
@@ -493,7 +493,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _switchTile(
                           context: context,
                           icon: Icons.fingerprint_rounded,
-                          iconBg: const Color(0xFF0D9488),
+                          iconBg: const Color(0xFF10B981),
                           title: 'Biometric security',
                           subtitle: 'Lock app with fingerprint',
                           value: provider.isBiometricEnabled,
@@ -515,7 +515,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _switchTile(
                           context: context,
                           icon: Icons.assignment_outlined,
-                          iconBg: const Color(0xFF8B5CF6),
+                          iconBg: const Color(0xFF706B5E),
                           title: 'Rough Plans',
                           subtitle: 'Plan trips or big purchases',
                           value: provider.isRoughPlansEnabled,
@@ -530,7 +530,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _sliderTile(
                           context: context,
                           icon: Icons.text_fields_rounded,
-                          iconBg: const Color(0xFFEC4899),
+                          iconBg: const Color(0xFF8B7E74),
                           title: 'Font Size',
                           subtitle: 'Scale: ${provider.fontSizeFactor.toStringAsFixed(1)}x',
                           value: provider.fontSizeFactor,

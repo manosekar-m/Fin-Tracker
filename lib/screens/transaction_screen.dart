@@ -297,7 +297,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                 const Text('Transaction deleted'),
               ],
             ),
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 5),
             action: SnackBarAction(
               label: 'UNDO',
               onPressed: () => provider.addTransaction(tx),
