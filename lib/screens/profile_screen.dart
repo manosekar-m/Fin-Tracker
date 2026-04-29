@@ -16,6 +16,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isFontSliderExpanded = false;
+  bool _isAccountDetailsExpanded = false;
+  bool _isPasswordVisible = false;
 
   void _showDeveloperCard(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -374,15 +376,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   letterSpacing: -0.5,
                                 ),
                           ),
-                          const SizedBox(width: 8),
-                          IconButton.filledTonal(
-                            icon: const Icon(Icons.edit_rounded, size: 14),
-                            onPressed: () =>
-                                _showEditNameDialog(context, provider),
-                            constraints: const BoxConstraints(
-                                minWidth: 28, minHeight: 28),
-                            padding: EdgeInsets.zero,
-                          ),
                         ],
                       ),
                     ],
@@ -459,6 +452,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         '₹${provider.savingsGoal.toStringAsFixed(0)} target set',
                     trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                     onTap: () => _showEditGoalDialog(context, provider),
+                  ),
+                  const SizedBox(height: 28),
+                  _sectionLabel(context, 'Account & Security'),
+                  const SizedBox(height: 12),
+                  // ─── Account Details ───────────────────────────────────────────
+                  Container(
+                    decoration: BoxDecoration(
+                      color: provider.isDarkMode
+                          ? Colors.white.withAlpha(10)
+                          : cs.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: cs.outline.withAlpha(60)),
+                    ),
+                    child: Column(
+                      children: [
+                        _expandableTile(
+                          context: context,
+                          icon: Icons.account_circle_outlined,
+                          iconBg: Colors.blueGrey,
+                          title: 'Account Details',
+                          subtitle: _isAccountDetailsExpanded
+                              ? 'Securely viewing credentials'
+                              : 'Tap to view name & password',
+                          isExpanded: _isAccountDetailsExpanded,
+                          onToggle: () => setState(() =>
+                              _isAccountDetailsExpanded =
+                                  !_isAccountDetailsExpanded),
+                        ),
+                        if (_isAccountDetailsExpanded) ...[
+                          Divider(
+                              height: 1,
+                              indent: 70,
+                              color: cs.outline.withAlpha(60)),
+                          _infoTile(
+                            context: context,
+                            icon: Icons.person_outline_rounded,
+                            title: 'Name',
+                            value: provider.userName,
+                            onTap: () => _showEditNameDialog(context, provider),
+                          ),
+                          Divider(
+                              height: 1,
+                              indent: 70,
+                              color: cs.outline.withAlpha(60)),
+                          _infoTile(
+                            context: context,
+                            icon: Icons.email_outlined,
+                            title: 'Email',
+                            value: HiveService.getUserBox().get('email') ??
+                                'manosekar@example.com',
+                          ),
+                          Divider(
+                              height: 1,
+                              indent: 70,
+                              color: cs.outline.withAlpha(60)),
+                          _infoTile(
+                            context: context,
+                            icon: Icons.lock_outline_rounded,
+                            title: 'Password',
+                            value: HiveService.getUserBox().get('password') ??
+                                '********',
+                            isPassword: true,
+                            isPasswordVisible: _isPasswordVisible,
+                            onTogglePassword: () => setState(
+                                () => _isPasswordVisible = !_isPasswordVisible),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 28),
 
@@ -843,6 +905,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
           duration: const Duration(milliseconds: 250),
         ),
       ],
+    );
+  }
+
+  Widget _expandableTile({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconBg,
+    required String title,
+    required String subtitle,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+  }) {
+    return GestureDetector(
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: iconBg.withAlpha(38),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: iconBg, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.titleSmall),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ),
+            AnimatedRotation(
+              turns: isExpanded ? 0.25 : 0,
+              duration: const Duration(milliseconds: 250),
+              child: const Icon(Icons.chevron_right_rounded, size: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String value,
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onTogglePassword,
+    VoidCallback? onTap,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: cs.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: cs.primary, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isPassword
+                        ? (isPasswordVisible ? value : '••••••••')
+                        : value,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing:
+                              (isPassword && !isPasswordVisible) ? 2 : 0,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            if (isPassword)
+              GestureDetector(
+                onTap: onTogglePassword,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.centerRight,
+                  child: Icon(
+                    isPasswordVisible
+                        ? Icons.visibility_rounded
+                        : Icons.visibility_off_rounded,
+                    size: 18,
+                    color: cs.onSurfaceVariant.withAlpha(150),
+                  ),
+                ),
+              )
+            else if (onTap != null)
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.centerRight,
+                child: Icon(Icons.edit_rounded,
+                    size: 16, color: cs.primary.withAlpha(150)),
+              )
+            else
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.centerRight,
+                child: Icon(Icons.check_circle_outline_rounded,
+                    size: 18, color: cs.primary.withAlpha(100)),
+              ),
+          ],
+        ),
+      ),
     );
   }
 

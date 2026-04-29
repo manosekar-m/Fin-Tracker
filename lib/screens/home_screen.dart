@@ -68,43 +68,57 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [cs.primary, cs.secondary],
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [cs.primary, cs.secondary],
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor: cs.surface,
+                    backgroundImage: provider.userAvatar != null
+                        ? (provider.userAvatar!.startsWith('assets')
+                            ? AssetImage(provider.userAvatar!) as ImageProvider
+                            : NetworkImage(provider.userAvatar!))
+                        : null,
+                    child: provider.userAvatar == null
+                        ? Icon(Icons.person_rounded, size: 24, color: cs.primary)
+                        : null,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: cs.surface,
-                  backgroundImage: provider.userAvatar != null
-                      ? (provider.userAvatar!.startsWith('assets')
-                          ? AssetImage(provider.userAvatar!) as ImageProvider
-                          : NetworkImage(provider.userAvatar!))
-                      : null,
-                  child: provider.userAvatar == null ? Icon(Icons.person_rounded, size: 24, color: cs.primary) : null,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Welcome back,', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
-                  Text(
-                    provider.userName,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                        ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Welcome back,',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(fontWeight: FontWeight.w500)),
+                      Text(
+                        provider.userName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 16),
           Row(
             children: [
               IconButton(
