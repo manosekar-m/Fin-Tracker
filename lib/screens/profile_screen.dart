@@ -1214,6 +1214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text('All data erased'),
+                    duration: const Duration(seconds: 5),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),

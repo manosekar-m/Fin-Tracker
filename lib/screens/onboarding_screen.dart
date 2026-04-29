@@ -41,10 +41,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       );
     } else {
       if (_selectedAvatar == null) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Please select an avatar to continue'),
             backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 5),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),

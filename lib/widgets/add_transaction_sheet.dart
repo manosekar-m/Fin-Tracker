@@ -488,9 +488,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
     final amtText = _amountCtrl.text.trim();
     final amount = double.tryParse(amtText);
     if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please enter a valid amount'),
+          duration: const Duration(seconds: 5),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -500,9 +502,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
 
     final resolvedCat = _isOther ? _customCatCtrl.text.trim() : _category;
     if (_isOther && resolvedCat.isEmpty) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please enter a category name'),
+          duration: const Duration(seconds: 5),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
@@ -588,8 +592,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
       });
       
       if (result.amount == null && result.category == null && result.date == null) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not extract any data from the receipt.')),
+          SnackBar(
+            content: const Text('Could not extract any data from the receipt.'),
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         );
       } else {
         String msg = 'Extracted: ';
@@ -597,14 +607,26 @@ class _AddTransactionSheetState extends State<AddTransactionSheet>
         if (result.category != null) msg += 'for $_category ';
         if (result.date != null) msg += 'on ${_formatDate(_date)}';
         
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(msg.trim())),
+           SnackBar(
+             content: Text(msg.trim()),
+             duration: const Duration(seconds: 5),
+             behavior: SnackBarBehavior.floating,
+             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to process image.')),
+          SnackBar(
+            content: const Text('Failed to process image.'),
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         );
       }
     } finally {

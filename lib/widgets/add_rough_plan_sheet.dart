@@ -93,8 +93,20 @@ class _AddRoughPlanSheetState extends State<AddRoughPlanSheet> {
                     IconButton(
                       icon: Icon(Icons.delete_outline_rounded, color: cs.error),
                       onPressed: () {
-                        Provider.of<TransactionProvider>(context, listen: false).deleteRoughPlan(widget.existingPlan!.id);
+                        Provider.of<TransactionProvider>(context, listen: false)
+                            .deleteRoughPlan(widget.existingPlan!.id);
                         Navigator.pop(context);
+                        
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Plan deleted'),
+                            duration: const Duration(seconds: 5),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            margin: const EdgeInsets.all(16),
+                          ),
+                        );
                       },
                     ),
                 ],

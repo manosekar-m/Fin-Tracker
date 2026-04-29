@@ -24,8 +24,14 @@ class _AuthScreenState extends State<AuthScreen> {
     final name = _nameController.text.trim();
 
     if (email.isEmpty || password.isEmpty || (!_isLogin && name.isEmpty)) {
+      ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
+        SnackBar(
+          content: const Text('Please fill in all fields'),
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
       return;
     }
@@ -39,8 +45,14 @@ class _AuthScreenState extends State<AuthScreen> {
       if (email == storedEmail && password == storedPass) {
         _onAuthSuccess(storedName);
       } else {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid credentials')),
+          SnackBar(
+            content: const Text('Invalid credentials'),
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         );
       }
     } else {
