@@ -640,26 +640,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           context: context,
                           icon: Icons.cloud_sync_rounded,
                           iconBg: const Color(0xFF6366F1),
-                          title: 'Cloud Backup (Sync)',
-                          subtitle: 'Backup data to Google/Firebase',
+                          title: 'Cloud Synchronization',
+                          subtitle: 'Securely sync data with Firebase',
                           trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                           onTap: () => _showCloudSyncDialog(context, provider),
-                        ),
-                        Divider(
-                            height: 1,
-                            indent: 70,
-                            color: cs.outline.withAlpha(60)),
-                        _settingTile(
-                          context: context,
-                          icon: Icons.ios_share_rounded,
-                          iconBg: const Color(0xFF10B981),
-                          title: 'Export Data (JSON)',
-                          subtitle: 'Manual backup to file',
-                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                          onTap: () async {
-                            final json = await SyncService.exportToJson();
-                            await Share.share(json, subject: 'Fin Tracker Backup');
-                          },
+                          noBorder: true,
                         ),
                         Divider(
                             height: 1,
@@ -1290,11 +1275,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildGuideItem(
                       context,
                       step: '06',
-                      title: 'Secure Your Data',
+                      title: 'Cloud Synchronization',
                       desc:
-                          'Enable Biometric Lock in settings so only YOU can see your finances. You can also wipe all data if you need a fresh start.',
-                      icon: Icons.fingerprint_rounded,
+                          'Enable Cloud Synchronization in the Profile screen. Your data is securely backed up to Firebase, allowing you to restore it instantly on any device.',
+                      icon: Icons.cloud_sync_rounded,
                       color: const Color(0xFF6366F1),
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '07',
+                      title: 'Investment Sub-Tracker',
+                      desc:
+                          'Track your wealth separately from expenses. Manage SIPs, Stocks, Gold, and Mutual Funds via the "Quick Actions" section on the Home screen.',
+                      icon: Icons.trending_up_rounded,
+                      color: Colors.green,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '08',
+                      title: 'Professional PDF Reports',
+                      desc:
+                          'Generate clean, detailed PDF statements of your monthly spending. Find the export option in the Profile or Insights section.',
+                      icon: Icons.picture_as_pdf_rounded,
+                      color: Colors.red,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '09',
+                      title: 'Budget Breakdown Alerts',
+                      desc:
+                          'Enable "Budget Breakdown" in settings. You\'ll receive smart alerts on your dashboard when you\'re nearing your spending limits.',
+                      icon: Icons.notification_important_rounded,
+                      color: Colors.pink,
+                    ),
+                    _buildGuideItem(
+                      context,
+                      step: '10',
+                      title: 'Advanced Privacy Lock',
+                      desc:
+                          'Keep your finances private. The app automatically triggers a biometric lock and blurred privacy overlay whenever you switch apps.',
+                      icon: Icons.security_rounded,
+                      color: Colors.indigo,
                       isLast: true,
                     ),
                     const SizedBox(height: 32),

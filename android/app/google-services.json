@@ -1,22 +1,21 @@
 {
   "project_info": {
-    "project_number": "505989758619",
-    "firebase_url": "https://my-vote-app-74f91-default-rtdb.firebaseio.com",
-    "project_id": "my-vote-app-74f91",
-    "storage_bucket": "my-vote-app-74f91.firebasestorage.app"
+    "project_number": "971584915513",
+    "project_id": "fin-tracker-b75dd",
+    "storage_bucket": "fin-tracker-b75dd.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:505989758619:android:be03f630c793245f9b503e",
+        "mobilesdk_app_id": "1:971584915513:android:9104c83ddfe5d6280725e8",
         "android_client_info": {
-          "package_name": "com.example.my_vote_app"
+          "package_name": "com.example.personal_finance_companion"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDxyYNyMC1VMxvGI32fByYSFx0UECKlFx8"
+          "current_key": "AIzaSyDO866bw1xVeNl12A489xdqxgvekDl95io"
         }
       ],
       "services": {
