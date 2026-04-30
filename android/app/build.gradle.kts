@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.personal_finance_companion"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -26,7 +26,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -38,6 +38,15 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
+        }
+    }
+}
+
+afterEvaluate {
+    subprojects {
+        if (project.extensions.findByName("android") != null) {
+            val android = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
+            android.compileSdkVersion(36)
         }
     }
 }
