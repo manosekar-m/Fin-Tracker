@@ -7,6 +7,9 @@ import '../models/transaction_model.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/add_rough_plan_sheet.dart';
+import 'budget_screen.dart';
+import 'investment_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,8 +35,15 @@ class HomeScreen extends StatelessWidget {
                         const SliverToBoxAdapter(child: SizedBox(height: 20)),
                         SliverToBoxAdapter(child: _buildSavingsGoal(context, provider)),
                         const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        if (provider.isBudgetBreakdownEnabled && provider.budgetWarnings.isNotEmpty) ...[  
+                          SliverToBoxAdapter(child: _buildBudgetAlerts(context, provider)),
+                          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        ],
                         SliverToBoxAdapter(child: _buildChartSection(context, provider)),
+                        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        SliverToBoxAdapter(child: _buildQuickActions(context, provider)),
                         if (provider.isRoughPlansEnabled) ...[
+
                           const SliverToBoxAdapter(child: SizedBox(height: 20)),
                           SliverToBoxAdapter(child: _buildRoughPlansSection(context, provider)),
                         ],
@@ -121,6 +131,7 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(width: 16),
           Row(
             children: [
+              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh_rounded, size: 20),
                 style: IconButton.styleFrom(
@@ -129,6 +140,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 onPressed: () => provider.loadTransactions(),
               ),
+
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.chevron_left),
@@ -533,7 +545,152 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildBudgetAlerts(BuildContext context, TransactionProvider provider) {
+    final warnings = provider.budgetWarnings;
+    if (warnings.isEmpty) return const SizedBox.shrink();
+
+    final cs = Theme.of(context).colorScheme;
+    final isOver = warnings.any((w) => (w['pct'] as double) >= 1.0);
+    final color = isOver ? cs.error : Colors.amber[700]!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const BudgetScreen()),
+        ),
+        child: GlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(isOver ? Icons.warning_amber_rounded : Icons.info_outline_rounded, 
+                    color: color, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    isOver ? 'Budget Exceeded!' : 'Budget Alert',
+                    style: TextStyle(color: color, fontWeight: FontWeight.w700),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.chevron_right_rounded, color: color, size: 18),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...warnings.take(2).map((w) {
+                final pct = (w['pct'] as double).clamp(0.0, 1.0);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(w['category'], style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+                          Text('${(pct * 100).toStringAsFixed(0)}%', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: pct,
+                          minHeight: 4,
+                          backgroundColor: cs.surfaceContainerHighest,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              if (warnings.length > 2)
+                Text('+ ${warnings.length - 2} more warnings', 
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, TransactionProvider provider) {
+    final cs = Theme.of(context).colorScheme;
+    final hasWarnings = provider.budgetWarnings.isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          // Budget Limits Card
+          Expanded(
+            child: GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BudgetScreen())),
+              child: GlassCard(
+                padding: const EdgeInsets.all(16),
+                borderRadius: BorderRadius.circular(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: hasWarnings ? cs.error.withAlpha(40) : cs.primary.withAlpha(26),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        hasWarnings ? Icons.shield_rounded : Icons.shield_outlined,
+                        color: hasWarnings ? cs.error : cs.primary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text('Budget Limits', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(hasWarnings ? '${provider.budgetWarnings.length} Alerts' : 'Manage limits', 
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: hasWarnings ? cs.error : null)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Investment Tracker Card
+          Expanded(
+            child: GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InvestmentScreen())),
+              child: GlassCard(
+                padding: const EdgeInsets.all(16),
+                borderRadius: BorderRadius.circular(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withAlpha(26),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.trending_up_rounded, color: Color(0xFF10B981), size: 20),
+                    ),
+                    const SizedBox(height: 12),
+                    Text('Investments', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                    Text('Track wealth', style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRoughPlansSection(BuildContext context, TransactionProvider provider) {
+
     final cs = Theme.of(context).colorScheme;
     final plans = provider.roughPlans;
 

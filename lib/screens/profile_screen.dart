@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../providers/transaction_provider.dart';
 import '../services/auth_service.dart';
 import '../services/hive_service.dart';
+import '../services/sync_service.dart';
+import 'package:share_plus/share_plus.dart';
 import 'auth_screen.dart';
 import 'dart:ui';
 
@@ -589,6 +591,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 1,
                             indent: 70,
                             color: cs.outline.withAlpha(60)),
+                        _switchTile(
+                          context: context,
+                          icon: Icons.pie_chart_outline_rounded,
+                          iconBg: const Color(0xFF6366F1),
+                          title: 'Budget Breakdown',
+                          subtitle: 'Show spending alerts on home',
+                          value: provider.isBudgetBreakdownEnabled,
+                          onChanged: (val) => provider.toggleBudgetBreakdown(val),
+                          isFirst: false,
+                          isLast: false,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
                         _sliderTile(
                           context: context,
                           icon: Icons.text_fields_rounded,
@@ -614,6 +631,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               const Icon(Icons.chevron_right_rounded, size: 20),
                           onTap: () => _showHowToUseDialog(context),
                           noBorder: true,
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
+                        _settingTile(
+                          context: context,
+                          icon: Icons.cloud_sync_rounded,
+                          iconBg: const Color(0xFF6366F1),
+                          title: 'Cloud Backup (Sync)',
+                          subtitle: 'Backup data to Google/Firebase',
+                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () => _showCloudSyncDialog(context, provider),
+                        ),
+                        Divider(
+                            height: 1,
+                            indent: 70,
+                            color: cs.outline.withAlpha(60)),
+                        _settingTile(
+                          context: context,
+                          icon: Icons.ios_share_rounded,
+                          iconBg: const Color(0xFF10B981),
+                          title: 'Export Data (JSON)',
+                          subtitle: 'Manual backup to file',
+                          trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                          onTap: () async {
+                            final json = await SyncService.exportToJson();
+                            await Share.share(json, subject: 'Fin Tracker Backup');
+                          },
                         ),
                         Divider(
                             height: 1,
@@ -1629,6 +1675,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+  void _showCloudSyncDialog(BuildContext context, TransactionProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cloud Sync'),
+        content: const Text('Backup your local data to the cloud or restore your history from a previous backup.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syncing to cloud...')));
+              final success = await SyncService.pushToCloud();
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cloud backup successful!')));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sync failed. Check connection or Firebase config.')));
+              }
+            },
+            child: const Text('Backup Now'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final success = await SyncService.pullFromCloud();
+              if (success) {
+                await provider.loadTransactions();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Data restored from cloud!')));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed. No cloud data found.')));
+              }
+            },
+            child: const Text('Restore Data'),
+          ),
+        ],
       ),
     );
   }

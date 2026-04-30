@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/transaction_model.dart';
 import '../services/hive_service.dart';
 import '../models/rough_plan_model.dart';
+import '../models/investment_model.dart';
+import '../services/sync_service.dart';
+
 
 class TransactionProvider with ChangeNotifier {
   List<TransactionModel> _transactions = [];
@@ -11,13 +14,18 @@ class TransactionProvider with ChangeNotifier {
   bool _isBiometricEnabled = false;
   String _userName = 'User';
   DateTime _selectedMonth = DateTime.now();
-  
+
   bool _isFirstRun = true;
   bool _isLoggedIn = false;
   String? _userAvatar;
   double _fontSizeFactor = 1.0;
   bool _isRoughPlansEnabled = false;
   List<RoughPlanModel> _roughPlans = [];
+  bool _isBudgetBreakdownEnabled = true;
+  List<InvestmentModel> _investments = [];
+  bool _isLocked = false;
+
+
 
   List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
@@ -32,6 +40,72 @@ class TransactionProvider with ChangeNotifier {
   double get fontSizeFactor => _fontSizeFactor;
   bool get isRoughPlansEnabled => _isRoughPlansEnabled;
   List<RoughPlanModel> get roughPlans => _roughPlans;
+  bool get isBudgetBreakdownEnabled => _isBudgetBreakdownEnabled;
+  List<InvestmentModel> get investments => _investments;
+  bool get isLocked => _isLocked;
+
+
+
+  // ─── Budget Limits ──────────────────────────────────────────────
+  Map<String, double> _budgetLimits = {};
+  Map<String, double> get budgetLimits => Map.unmodifiable(_budgetLimits);
+
+  double getBudgetLimit(String category) => _budgetLimits[category] ?? 0.0;
+
+  double getBudgetUsed(String category) {
+    return _transactions
+        .where((tx) =>
+            tx.type == TransactionType.expense &&
+            tx.category == category &&
+            tx.date.year == _selectedMonth.year &&
+            tx.date.month == _selectedMonth.month)
+        .fold(0.0, (sum, tx) => sum + tx.amount);
+  }
+
+  /// Returns all categories with a limit that are >=80% used this month.
+  List<Map<String, dynamic>> get budgetWarnings {
+    final warnings = <Map<String, dynamic>>[];
+    for (final entry in _budgetLimits.entries) {
+      if (entry.value <= 0) continue;
+      final used = getBudgetUsed(entry.key);
+      final pct = used / entry.value;
+      if (pct >= 0.8) {
+        warnings.add({
+          'category': entry.key,
+          'limit': entry.value,
+          'used': used,
+          'pct': pct,
+        });
+      }
+    }
+    return warnings;
+  }
+
+  void setBudgetLimit(String category, double amount) {
+    _budgetLimits[category] = amount;
+    _saveBudgetLimits();
+    notifyListeners();
+  }
+
+  void removeBudgetLimit(String category) {
+    _budgetLimits.remove(category);
+    _saveBudgetLimits();
+    notifyListeners();
+  }
+
+  void _saveBudgetLimits() {
+    HiveService.getSettingsBox().put('budgetLimits', Map<String, double>.from(_budgetLimits));
+  }
+
+  void _loadBudgetLimits() {
+    final raw = HiveService.getSettingsBox().get('budgetLimits');
+    if (raw != null && raw is Map) {
+      _budgetLimits = Map<String, double>.from(
+        raw.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
+      );
+    }
+  }
+  // ────────────────────────────────────────────────────────────────
 
   Future<void> loadTransactions() async {
     try {
@@ -45,6 +119,9 @@ class TransactionProvider with ChangeNotifier {
       _userAvatar = settings.get('userAvatar');
       _fontSizeFactor = settings.get('fontSizeFactor', defaultValue: 1.0);
       _isRoughPlansEnabled = settings.get('roughPlansEnabled', defaultValue: false);
+      _isBudgetBreakdownEnabled = settings.get('budgetBreakdownEnabled', defaultValue: true);
+      _loadBudgetLimits();
+
 
       final roughBox = HiveService.getRoughPlansBox();
       _roughPlans = roughBox.values
@@ -57,6 +134,13 @@ class TransactionProvider with ChangeNotifier {
           .map((e) => TransactionModel.fromMap(Map<String, dynamic>.from(e)))
           .toList()
         ..sort((a, b) => b.date.compareTo(a.date));
+
+      final invBox = HiveService.getInvestmentsBox();
+      _investments = invBox.values
+          .map((e) => InvestmentModel.fromMap(Map<String, dynamic>.from(e)))
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+
 
     } catch (e) {
       debugPrint('Error loading data: $e');
@@ -93,8 +177,11 @@ class TransactionProvider with ChangeNotifier {
   }
 
   List<TransactionModel> get filteredTransactions {
-    return _transactions.where((tx) =>
-      tx.date.year == _selectedMonth.year && tx.date.month == _selectedMonth.month).toList();
+    return _transactions
+        .where((tx) =>
+            tx.date.year == _selectedMonth.year &&
+            tx.date.month == _selectedMonth.month)
+        .toList();
   }
 
   Future<void> addTransaction(TransactionModel tx) async {
@@ -103,6 +190,7 @@ class TransactionProvider with ChangeNotifier {
     _transactions.insert(0, tx);
     _transactions.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
+    syncCloud();
   }
 
   Future<void> updateTransaction(TransactionModel tx) async {
@@ -113,6 +201,7 @@ class TransactionProvider with ChangeNotifier {
       _transactions[index] = tx;
       _transactions.sort((a, b) => b.date.compareTo(a.date));
       notifyListeners();
+      syncCloud();
     }
   }
 
@@ -121,6 +210,7 @@ class TransactionProvider with ChangeNotifier {
     await box.delete(id);
     _transactions.removeWhere((tx) => tx.id == id);
     notifyListeners();
+    syncCloud();
   }
 
   Future<void> eraseAllData() async {
@@ -172,6 +262,13 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleBudgetBreakdown(bool value) {
+    _isBudgetBreakdownEnabled = value;
+    HiveService.getSettingsBox().put('budgetBreakdownEnabled', _isBudgetBreakdownEnabled);
+    notifyListeners();
+  }
+
+
   Future<void> addRoughPlan(RoughPlanModel plan) async {
     final box = HiveService.getRoughPlansBox();
     await box.put(plan.id, plan.toMap());
@@ -196,16 +293,64 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  double get totalIncome => filteredTransactions.where((t) => t.type == TransactionType.income).fold(0.0, (sum, item) => sum + item.amount);
-  double get totalExpenses => filteredTransactions.where((t) => t.type == TransactionType.expense).fold(0.0, (sum, item) => sum + item.amount);
+  // ─── Investment Methods ──────────────────────────────────────────
+  Future<void> addInvestment(InvestmentModel inv) async {
+    final box = HiveService.getInvestmentsBox();
+    await box.put(inv.id, inv.toMap());
+    _investments.insert(0, inv);
+    _investments.sort((a, b) => b.date.compareTo(a.date));
+    notifyListeners();
+  }
+
+  Future<void> updateInvestment(InvestmentModel inv) async {
+    final box = HiveService.getInvestmentsBox();
+    await box.put(inv.id, inv.toMap());
+    final index = _investments.indexWhere((i) => i.id == inv.id);
+    if (index != -1) {
+      _investments[index] = inv;
+      _investments.sort((a, b) => b.date.compareTo(a.date));
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteInvestment(String id) async {
+    final box = HiveService.getInvestmentsBox();
+    await box.delete(id);
+    _investments.removeWhere((i) => i.id == id);
+    notifyListeners();
+  }
+
+  void setLocked(bool value) {
+    _isLocked = value;
+    notifyListeners();
+  }
+
+  Future<void> syncCloud() async {
+    try {
+      await SyncService.pushToCloud();
+    } catch (e) {
+      debugPrint('Cloud Sync failed/skipped: $e');
+    }
+  }
+
+  double get totalInvested => _investments.fold(0.0, (sum, item) => sum + item.amount);
+
+
+  double get totalIncome => filteredTransactions
+      .where((t) => t.type == TransactionType.income)
+      .fold(0.0, (sum, item) => sum + item.amount);
+  double get totalExpenses => filteredTransactions
+      .where((t) => t.type == TransactionType.expense)
+      .fold(0.0, (sum, item) => sum + item.amount);
   double get currentBalance => totalIncome - totalExpenses;
-  double get savingsProgress => _savingsGoal <= 0 ? 0 : (currentBalance / _savingsGoal).clamp(0.0, 1.0);
+  double get savingsProgress =>
+      _savingsGoal <= 0 ? 0 : (currentBalance / _savingsGoal).clamp(0.0, 1.0);
 
   List<double> get last7DaysSpending {
-    List<double> dailySpending = List.filled(7, 0.0);
-    DateTime today = DateUtils.dateOnly(DateTime.now());
+    final dailySpending = List.filled(7, 0.0);
+    final today = DateUtils.dateOnly(DateTime.now());
     for (var tx in _transactions.where((t) => t.type == TransactionType.expense)) {
-      int diff = today.difference(DateUtils.dateOnly(tx.date)).inDays;
+      final diff = today.difference(DateUtils.dateOnly(tx.date)).inDays;
       if (diff >= 0 && diff < 7) {
         dailySpending[6 - diff] += tx.amount;
       }
@@ -214,7 +359,7 @@ class TransactionProvider with ChangeNotifier {
   }
 
   Map<String, double> get categoryBreakdown {
-    Map<String, double> breakdown = {};
+    final breakdown = <String, double>{};
     for (var tx in filteredTransactions.where((t) => t.type == TransactionType.expense)) {
       breakdown[tx.category] = (breakdown[tx.category] ?? 0) + tx.amount;
     }

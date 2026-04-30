@@ -5,12 +5,19 @@ import 'screens/main_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
-import 'services/hive_service.dart';
 import 'services/auth_service.dart';
+import 'services/hive_service.dart';
 import 'theme/app_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e. Make sure to add google-services.json/plist.');
+  }
   await HiveService.init();
   runApp(const MyApp());
 }
@@ -93,6 +100,8 @@ class _MyAppState extends State<MyApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       bool authenticated = await AuthService.authenticate();
       if (authenticated) {
+        final provider = Provider.of<TransactionProvider>(context, listen: false);
+        provider.setLocked(false);
         setState(() {
           _isAuthenticated = true;
           _isAuthenticating = false;
