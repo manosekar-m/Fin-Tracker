@@ -5,7 +5,6 @@ import '../providers/transaction_provider.dart';
 import '../services/auth_service.dart';
 import '../services/hive_service.dart';
 import '../services/sync_service.dart';
-import 'package:share_plus/share_plus.dart';
 import 'auth_screen.dart';
 import 'dart:ui';
 
@@ -1715,6 +1714,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Syncing to cloud...')));
               final success = await SyncService.pushToCloud();
+              if (!context.mounted) return;
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cloud backup successful!')));
               } else {
@@ -1727,8 +1727,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               Navigator.pop(context);
               final success = await SyncService.pullFromCloud();
+              if (!context.mounted) return;
               if (success) {
                 await provider.loadTransactions();
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Data restored from cloud!')));
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restore failed. No cloud data found.')));
