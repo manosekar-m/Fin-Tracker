@@ -240,7 +240,7 @@ class PdfService {
       return [
         DateFormat('dd MMM').format(t.date),
         t.category,
-        t.notes.isNotEmpty ? t.notes : '—',
+        t.notes.isNotEmpty ? t.notes : '-',
         t.type == TransactionType.income ? 'Income' : 'Expense',
         '${t.type == TransactionType.income ? '+' : '-'}Rs.${_fmt(t.amount)}',
       ];

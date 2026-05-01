@@ -109,6 +109,8 @@ class HomeScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Welcome back,',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
@@ -130,42 +132,51 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.refresh_rounded, size: 20),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                padding: EdgeInsets.zero,
                 style: IconButton.styleFrom(
                   backgroundColor: cs.surfaceContainerHighest,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () => provider.loadTransactions(),
               ),
-
               const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                style: IconButton.styleFrom(
-                  backgroundColor: cs.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              Container(
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                onPressed: () => provider.setSelectedMonth(
-                  DateTime(provider.selectedMonth.year, provider.selectedMonth.month - 1),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                DateFormat('MMM yyyy').format(provider.selectedMonth),
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                style: IconButton.styleFrom(
-                  backgroundColor: cs.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                onPressed: () => provider.setSelectedMonth(
-                  DateTime(provider.selectedMonth.year, provider.selectedMonth.month + 1),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left, size: 20),
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => provider.setSelectedMonth(
+                        DateTime(provider.selectedMonth.year, provider.selectedMonth.month - 1),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        DateFormat('MMM yy').format(provider.selectedMonth),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 13),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right, size: 20),
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      padding: EdgeInsets.zero,
+                      onPressed: () => provider.setSelectedMonth(
+                        DateTime(provider.selectedMonth.year, provider.selectedMonth.month + 1),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
